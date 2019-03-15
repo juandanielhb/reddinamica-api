@@ -1,3 +1,4 @@
 {
-    "PORT": 3800
+    "PORT": 3800,
+    "SECRET_KEY": "redDinamica@S1M0N_UIS"
 }
