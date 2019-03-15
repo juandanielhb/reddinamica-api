@@ -12,7 +12,7 @@ async function initDB(){
 function initApp(){
     console.log("Starting server");
     app.listen(PORT, ()=>{
-        console.log("Server is up!");
+        console.log(`Server is up on port: ${PORT}`);
     });
     process.on("SIGINT", closeApp);
     process.on("SIGTERM", closeApp);
