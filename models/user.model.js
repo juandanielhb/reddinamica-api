@@ -7,16 +7,19 @@ var userSchema = schema({
     name:String,
     surname:String,
     password:String,
-    email:String,
+    email:{type:String,unique:true},
     about:String,
+    gender:String,
     state:String,
+    is_actived:Boolean,
     role:String,
     postgraduate:String,
-    image:String,
-    profession: { type: schema.ObjectId, ref: 'profession'},
-    institution: { type: schema.ObjectId, ref: 'institution'},
-    city: { type: schema.ObjectId, ref: 'city'},
+    picture:String,
+    knowledge_area:[String],
+    profession:[String],
+    institution: {type: schema.ObjectId, ref: 'Institution'},
+    city: {type: schema.ObjectId, ref: 'City'},
     created_at:String
 });
 
-module.exports = mongoose.model('user', userSchema);
+module.exports = mongoose.model('User', userSchema);
