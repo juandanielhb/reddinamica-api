@@ -9,7 +9,6 @@ var userSchema = schema({
     password:String,
     email:{type:String,unique:true},
     about:String,
-    gender:String,
     state:String,
     role:String,
     postgraduate:String,
