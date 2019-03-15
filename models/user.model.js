@@ -11,7 +11,6 @@ var userSchema = schema({
     about:String,
     gender:String,
     state:String,
-    is_actived:Boolean,
     role:String,
     postgraduate:String,
     picture:String,

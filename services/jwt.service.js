@@ -13,7 +13,6 @@ exports.createToken = function(user){
         about: user.about,
         gender: user.gender,
         state: user.state,
-        is_actived: user.is_actived,
         role: user.role,
         postgraduate: user.postgraduate,
         picture: user.picture,
