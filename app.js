@@ -1,18 +1,18 @@
 'use strict'
 
 // app.js has all the set up for express
-var express = require('express');
-var bodyParser = require('body-parser');
+let express = require('express');
+let bodyParser = require('body-parser');
 
-var app = express();
+let app = express();
 
 // Load routes
-
+let institutionRoutes = require('./routes/institution.routes');
+let cityRoutes = require('./routes/city.routes');
 
 // Middlewares
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
-
 
 // Cors
 app.use((req, res, next) => {
@@ -25,7 +25,8 @@ app.use((req, res, next) => {
 });
 
 // Routes
-
+app.use('/api', institutionRoutes);
+app.use('/api', cityRoutes);
 
 // Export
 module.exports = app;
