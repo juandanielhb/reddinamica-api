@@ -1,72 +1,62 @@
 'use strict'
+let {ITEMS_PER_PAGE} = require('../config');
 
 var bcrypt = require('bcrypt-nodejs');
-var UserModel = require('../models/user.model');
-var FollowModel = require('../models/follow.model');
-var PublicationModel = require('../models/publication.model');
-
-var jwt = require('../services/jwt.service');
+var moment = require('moment');
 var fs = require('fs');
 var path = require('path');
 
+var jwt = require('../services/jwt.service');
 
-/**
- *
- *
- * @param {*} req
- * @param {*} res
- */
-function saveUser(req, res){
+// var FollowModel = require('../models/follow.model');
+// var PublicationModel = require('../models/publication.model');
+var User = require('../models/user.model');
+
+function saveUser(req, res) {
     var params = req.body;
-    var user = new UserModel();
+    var user = new User();
 
-    if( params.name && params.surname &&
-        params.nick && params.email &&
-        params.password){
+    if (params.name && params.surname && params.email &&
+        params.password && params.role) {
 
-            user.name = params.name;
-            user.surname = params.surname;
-            user.nick = params.nick;
-            user.email = params.email;
-            user.role = 'ROLE_USER';
-            user.image = null;
+        user.name = params.name;
+        user.surname = params.surname;
+        user.password = params.password;
+        user.email = params.email.toLowerCase();
+        user.about = params.about;
+        user.state = params.state;
+        user.role = params.role;
+        user.postgraduate = params.postgraduate;
+        user.picture = params.picture;
+        user.knowledge_area = params.knowledge_area;
+        user.profession = params.profession;
+        user.institution = params.institution;
+        user.city = params.city;
+        user.created_at = moment().unix();
 
-            // Check duplicate users
-            UserModel.find({
-                $or: [
-                    {email: user.email.toLowerCase()},
-                    {nick: user.nick.toLowerCase()}
-                ]}).exec((err, users) => {
-                    if(err) return res.status(500).send({
-                        message: 'Error en la petición de usuarios'
+        // Check duplicate users
+        User.find({ email: user.email }, (err, users) => {
+            if (err) return res.status(500).send({ message: 'Error in the request. The user can not be found' });
+
+            if (users && users.length >= 1) {
+                return res.status(200).send({ message: 'User already exists' });
+            } else {
+                bcrypt.hash(params.password, null, null, (err, hash) => {
+                    user.password = hash;
+                    user.save((err, userStored) => {
+                        if (err) return res.status(500).send({ message: 'Error in the request. The user can not be saved' });
+
+                        if (!userStored) return res.status(404).send({ message: 'The user has not been saved' }); 
+
+                        return res.status(200).send({ user: userStored });
                     });
-
-                    if (users && users.length >=1){
-                        return res.status(200).send({
-                            message: 'El usuario que intenta registrar ya existe'
-                        });
-                    }else{
-
-                        bcrypt.hash(params.password, null, null, (error, hash) => {
-                            user.password = hash;
-                            user.save((err, userStored)=>{
-                                if(err) return res.status(500).send({message: 'Error al guardar el usuario'});
-            
-                                if(userStored){
-                                    res.status(200).send({user: userStored});               
-                                }else{
-                                    res.status(404).send({message: 'No se ha registrado el usuario'});
-                                }
-                            });
-                        });
-                    }
                 });
+            }
+        });
 
-        }else{
-            res.status(200).send({
-                message:'Envía todos los campos requeridos'
-            });
-        }
+    } else {
+        return res.status(200).send({message: 'You must fill all the required fields'});
+    }
 }
 
 function login(req, res){
@@ -75,55 +65,45 @@ function login(req, res){
     var email = params.email;
     var password = params.password;
 
-    UserModel.findOne({email: email}, (err, user) =>{
-        if(err) return res.status(500).send({message: 'Error en la petición'});
+    User.findOne({email: email}, (err, user) =>{
+        if(err) return res.status(500).send({message: 'Error in the request. The user can not be logged in'});
 
         if(user){
             bcrypt.compare(password, user.password, (err, check) =>{
-                if(check){
+                if(check && user.state === 'actived'){
                     if(params.getToken){
-                        // generate and return token
-                        return res.status(200).send({
-                            token: jwt.createToken(user)
-                        })
+                        // Generate and return token
+                        return res.status(200).send({token: jwt.createToken(user)});
                     }else{
-                        // return user data
-                        user.password = undefined;
+                        // Return user data
+                        delete user.password;
                         return res.status(200).send({user: user});
-                    }
+                    }                    
                 }else{
-                    return res.status(404).send({message:'El usuario no se ha podido identificar!'});
+                    return res.status(404).send({message:'The user can not be logged in!'});
                 }
             });
+
         }else{
-            return res.status(404).send({message:'El usuario no se ha podido identificar!!'});
+            return res.status(404).send({message:'The user can not be logged in!'});
         }
-
-
-    })
-
-
+    });
 }
 
 function getUser(req, res){
     var userId = req.params.id;
 
-    UserModel.findById(userId, (err, user) => {
-        if(err) return res.status(500).send({message: 'Error en la petición'});
+    User.findById(userId, (err, user) => {
+        if(err) return res.status(500).send({message: 'Error in the request. User can not be found'});
 
-        if(!user) return res.status(404).send({message: 'El usuario no existe'});
-
-        console.log(req.user.sub + " " + userId);
+        if(!user) return res.status(404).send({message: 'User doesn\'t exist'});        
 
         followThisUser(req.user.sub, userId).then((value) => {
             return res.status(200).send({
                 user,
                 value
             });
-
-        });
-  
-       
+        });       
     });
 }
 
@@ -148,16 +128,16 @@ async function followThisUser(identityUserId, userId){
 }
 
 function getUsers(req, res){
-    var userIdLoggedIn = req.user.sub;
-    var page = 1;
+    let userIdLoggedIn = req.user.sub;
+    let page = 1;
 
     if(req.params.page){
         page = req.params.page;
     }
 
-    var itemsPerPage = 5;
+    let itemsPerPage = ITEMS_PER_PAGE;
 
-    UserModel.find().sort('_id').paginate(page, itemsPerPage, (err, users, total) =>{
+    UserModel.find().sort('name').paginate(page, itemsPerPage, (err, users, total) =>{
         if(err) return res.status(500).send({message: 'Error en la petición'});
 
         if(!users) return res.status(404).send({message: 'No hay usuarios disponibles'});
@@ -213,7 +193,7 @@ function updateUser(req, res){
     delete update.password;
     
     if(userId != req.user.sub){
-        return res.status(500).send({message:'No tienes permiso para actualizar los datos del usuario'});
+        return res.status(401).send({message:'You do not have permission to update user data'});
     }
     
     UserModel.find({
@@ -244,8 +224,6 @@ function updateUser(req, res){
             });
 
         });
-
-
 }
 
 // Upload profile photo
@@ -349,23 +327,7 @@ async function getCountFollow(userId){
     }
 }
 
-function home(req, res){
-    res.status(200).send({
-        message: 'Hola mundo'
-    });
-};
-
-function pruebas(req, res){
-    console.log(req.body);
-    res.status(200).send({
-        message: 'Accion pruebas en el servidor nodeJs'
-    });
-};
-
-
 module.exports = {
-    home,
-    pruebas,
     saveUser,
     login,
     getUser,

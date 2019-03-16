@@ -7,6 +7,7 @@ let bodyParser = require('body-parser');
 let app = express();
 
 // Load routes
+let userRoutes = require('./routes/user.routes');
 let institutionRoutes = require('./routes/institution.routes');
 let cityRoutes = require('./routes/city.routes');
 
@@ -25,8 +26,9 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.use('/api', institutionRoutes);
 app.use('/api', cityRoutes);
+app.use('/api', institutionRoutes);
+app.use('/api', userRoutes);
 
 // Export
 module.exports = app;

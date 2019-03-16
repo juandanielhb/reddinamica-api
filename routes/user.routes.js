@@ -10,10 +10,12 @@ var multipart = require('connect-multiparty');
 var uploadMiddleware = multipart({uploadDir:'./uploads/users'});
 
 
+api.post('/register', userController.saveUser);
+api.post('/login', userController.login);
+
 // api.get('/home', userController.home);
 // api.get('/pruebas', authMiddleware.ensureAuth , userController.pruebas);
-// api.post('/register', userController.saveUser);
-// api.post('/login', userController.login);
+
 // api.get('/user/:id', authMiddleware.ensureAuth , userController.getUser);
 // api.get('/users/:page?', authMiddleware.ensureAuth , userController.getUsers);
 // api.get('/counters/:id?', authMiddleware.ensureAuth , userController.getCounters);
