@@ -1,11 +1,11 @@
 'use strict'
 
 var express = require('express');
-var messageController = require('../controllers/message.controller');
+var api = express.Router();
 
 var authMiddleware = require('../middlewares/auth.middleware');
 
-var api = express.Router();
+var messageController = require('../controllers/message.controller');
 
 api.get('/probando-msg', authMiddleware.ensureAuth, messageController.probando);
 

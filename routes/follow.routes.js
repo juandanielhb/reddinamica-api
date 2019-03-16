@@ -1,12 +1,12 @@
 'use strict'
 
 var express = require('express');
-var followController = require('../controllers/follow.controller');
-
+var api = express.Router();
 
 var authMiddleware = require('../middlewares/auth.middleware');
 
-var api = express.Router();
+var followController = require('../controllers/follow.controller');
+
 
 api.post('/follow', authMiddleware.ensureAuth, followController.saveFollow);
 api.delete('/follow/:id', authMiddleware.ensureAuth, followController.unfollow);

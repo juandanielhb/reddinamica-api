@@ -1,17 +1,21 @@
 'use strict'
 
-var express = require('express');
-var userController = require('../controllers/user.controller');
+let express = require('express');
+let userController = require('../controllers/user.controller');
 
-var api = express.Router();
-var authMiddleware = require('../middlewares/auth.middleware');
-var multipart = require('connect-multiparty');
 
-var uploadMiddleware = multipart({uploadDir:'./uploads/users'});
+let api = express.Router();
 
+let authMiddleware = require('../middlewares/auth.middleware');
+let uploadMiddleware = require('../middlewares/multer.middleware');
 
 api.post('/register', userController.saveUser);
 api.post('/login', userController.login);
+api.post('/upload', uploadMiddleware, (req,res) => {
+     console.log(req.file);
+     res.send('upload');
+ });
+
 
 // api.get('/home', userController.home);
 // api.get('/pruebas', authMiddleware.ensureAuth , userController.pruebas);

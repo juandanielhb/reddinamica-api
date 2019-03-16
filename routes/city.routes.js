@@ -1,10 +1,11 @@
 'use strict'
 
 var express = require('express');
-var cityController = require('../controllers/city.controller');
-
 var api = express.Router();
+
 var authMiddleware = require('../middlewares/auth.middleware');
+
+var cityController = require('../controllers/city.controller');
 
 
 api.post('/city', cityController.saveCity);

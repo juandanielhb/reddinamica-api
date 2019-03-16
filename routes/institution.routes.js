@@ -1,11 +1,11 @@
 'use strict'
 
 var express = require('express');
-var institutionController = require('../controllers/institution.controller');
-
 var api = express.Router();
+
 var authMiddleware = require('../middlewares/auth.middleware');
 
+var institutionController = require('../controllers/institution.controller');
 
 
 api.post('/institution', institutionController.saveInstitution);
