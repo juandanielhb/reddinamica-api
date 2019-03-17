@@ -82,3 +82,9 @@ typings/
 
 # database config
 db/config.json
+
+# Base config
+config.json
+
+# Uploaded files
+public/
