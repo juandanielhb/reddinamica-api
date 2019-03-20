@@ -1,20 +1,18 @@
 'use strict'
 
+// Libraries
 let express = require('express');
 let userController = require('../controllers/user.controller');
 
-
-let api = express.Router();
-
+// Middleware
 let authMiddleware = require('../middlewares/auth.middleware');
 let uploadMiddleware = require('../middlewares/multer.middleware');
 
+let api = express.Router();
+
 api.post('/register', userController.saveUser);
 api.post('/login', userController.login);
-api.post('/upload', uploadMiddleware, (req,res) => {
-     console.log(req.file);
-     res.send('upload');
- });
+api.post('/upload-image-user/:id', [authMiddleware.ensureAuth, uploadMiddleware.uploadImage] , userController.uploadProfilePic);
 
 
 // api.get('/home', userController.home);

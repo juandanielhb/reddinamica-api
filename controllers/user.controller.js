@@ -1,16 +1,20 @@
 'use strict'
-let {ITEMS_PER_PAGE} = require('../config');
 
-var bcrypt = require('bcrypt-nodejs');
-var moment = require('moment');
-var fs = require('fs');
-var path = require('path');
+// Libraries
+let bcrypt = require('bcrypt-nodejs');
+let moment = require('moment');
+let fs = require('fs');
+let path = require('path');
 
-var jwt = require('../services/jwt.service');
+// Services
+let jwt = require('../services/jwt.service');
 
-// var FollowModel = require('../models/follow.model');
-// var PublicationModel = require('../models/publication.model');
-var User = require('../models/user.model');
+// Models
+let User = require('../models/user.model');
+
+// Constant
+const {ITEMS_PER_PAGE} = require('../config');
+const USERSPATH = './uploads/users/';
 
 function saveUser(req, res) {
     var params = req.body;
@@ -70,7 +74,9 @@ function login(req, res){
 
         if(user){
             bcrypt.compare(password, user.password, (err, check) =>{
-                if(check && user.state === 'actived'){
+                
+                if(check && user.state === 'active'){
+
                     if(params.getToken){
                         // Generate and return token
                         return res.status(200).send({token: jwt.createToken(user)});
@@ -135,9 +141,7 @@ function getUsers(req, res){
         page = req.params.page;
     }
 
-    let itemsPerPage = ITEMS_PER_PAGE;
-
-    UserModel.find().sort('name').paginate(page, itemsPerPage, (err, users, total) =>{
+    User.find().sort('name').paginate(page, ITEMS_PER_PAGE, (err, users, total) =>{
         if(err) return res.status(500).send({message: 'Error en la petición'});
 
         if(!users) return res.status(404).send({message: 'No hay usuarios disponibles'});
@@ -148,7 +152,7 @@ function getUsers(req, res){
                 users_following: value.following,
                 users_followers: value.followers,
                 total,
-                pages: Math.ceil(total/itemsPerPage),
+                pages: Math.ceil(total/ITEMS_PER_PAGE),
                 
             });
         });
@@ -196,7 +200,7 @@ function updateUser(req, res){
         return res.status(401).send({message:'You do not have permission to update user data'});
     }
     
-    UserModel.find({
+    User.find({
         $or: [
             {email: update.email.toLowerCase()},
             {nick: update.nick.toLowerCase()}
@@ -214,7 +218,7 @@ function updateUser(req, res){
                 return res.status(500).send({message: 'Los datos ya están en uso.'});
             }
 
-            UserModel.findByIdAndUpdate(userId, update,{new:true}, (err, userUpdated) =>{
+            User.findByIdAndUpdate(userId, update,{new:true}, (err, userUpdated) =>{
                // console.log(err);
                 if(err) return res.status(500).send({message: 'Error en la petición'});
         
@@ -227,44 +231,42 @@ function updateUser(req, res){
 }
 
 // Upload profile photo
-function uploadProfilePic(req, res){
-    var userId = req.params.id;
- 
-    if(req.files){
-        var filePath = req.files.image.path;
-        
-        var fileSplit = filePath.split('\\');
-        
-        var fileName = fileSplit[2];
-        
-        var extSplit = fileName.split('\.');
+async function uploadProfilePic(req, res){
+    let userId = req.params.id;
 
-        var ext = extSplit[1].toLowerCase();
+    let tempPath = req.file.path;
+    let fileName = req.file.filename;
 
-        console.log(filePath);
-        console.log(userId + " " + req.user.sub );
+    let targetFolder = path.resolve(`${USERSPATH}${userId}`);    
+    let targetPath = path.resolve(`${targetFolder}/${fileName}`);
+
+    if(req.file){
+
         if(userId != req.user.sub){
-            console.log(1010); 
-            return removeFilesOfUpdates(res, filePath, 'No tienes permiso para actualizar los datos del usuario');
-        }        
-        
-        if( ext == 'jpg' || ext == 'jpeg' || ext == 'png' || ext == 'gif'){
-            //return res.status(200).send(filePath);
-            UserModel.findByIdAndUpdate(userId, {image: fileName}, {new:true}, (err, userUpdated) =>{
-                // console.log(err);
-                 if(err) return res.status(500).send({message: 'Error en la petición'});
-         
-                 if(!userUpdated) return res.status(404).send({message: 'No se ha podido actualizar el usuario'});
-         
-                 return res.status(200).send({user:userUpdated});
-             });
+            return removeFilesOfUpdates(res, tempPath, 'You do not have permission to update user data');
+        }       
 
-        }else{
-            return removeFilesOfUpdates(res, filePath, 'Extensión no válida');
-        }
+        fs.mkdir(targetFolder, { recursive: true }, (err) => {
+            if (err) return removeFilesOfUpdates(res, tempPath, 'The image could not be uploaded');
+
+            fs.rename(tempPath, targetPath, (err) => {
+                if (err) return removeFilesOfUpdates(res, tempPath, 'The image could not be uploaded');
+
+                User.findByIdAndUpdate(userId, { picture: fileName }, { new: true }, (err, userUpdated) => {
+                    
+                    if (err) return res.status(500).send({ message: 'Error in the request. The image user can not be upadated' });
+                    
+                    if (!userUpdated) return res.status(404).send({ message: 'The user has not been updated' });
+                    
+                    return res.status(200).send({ user: userUpdated });
+                });
+
+            });
+            
+        });
 
     }else{
-        return res.status(200).send({message: 'No se han subido ningún archivo.'})
+        return res.status(200).send({message: 'No file has been uploaded'})
     }
 }
 
@@ -277,13 +279,13 @@ function getProfilePic(req, res){
             res.sendFile(path.resolve(pathFile));
 
         }else{
-            res.status(200).send({message:'No existe la imagen'});
+            res.status(200).send({message:'The image does not exits'});
         }
     });
 }
 
-function removeFilesOfUpdates(res, filePath, message){
-    fs.unlink(filePath, (err) => {
+async function removeFilesOfUpdates(res, filePath, message){
+    await fs.unlink(filePath, (err) => {
         return res.status(200).send({message: message})
     });
 }

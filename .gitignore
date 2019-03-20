@@ -87,4 +87,4 @@ db/config.json
 config.json
 
 # Uploaded files
-public/
+uploads/
