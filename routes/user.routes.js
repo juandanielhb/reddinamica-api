@@ -13,6 +13,7 @@ let api = express.Router();
 api.post('/register', userController.saveUser);
 api.post('/login', userController.login);
 api.post('/upload-image-user/:id', [authMiddleware.ensureAuth, uploadMiddleware.uploadImage] , userController.uploadProfilePic);
+api.get('/get-image-user/:imageFile/:id', userController.getProfilePic);
 
 
 // api.get('/home', userController.home);

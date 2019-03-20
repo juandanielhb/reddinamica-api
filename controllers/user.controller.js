@@ -231,14 +231,19 @@ function updateUser(req, res){
 }
 
 // Upload profile photo
-async function uploadProfilePic(req, res){
+function uploadProfilePic(req, res){
     let userId = req.params.id;
-
+    let previousfilename = req.body.filename;
     let tempPath = req.file.path;
-    let fileName = req.file.filename;
+    let filename = req.file.filename;
+    let targetFolder = path.resolve(`${USERSPATH}${userId}`);  
+    let targetPath = path.resolve(`${targetFolder}/${filename}`);
 
-    let targetFolder = path.resolve(`${USERSPATH}${userId}`);    
-    let targetPath = path.resolve(`${targetFolder}/${fileName}`);
+    if(previousfilename){
+        fs.unlink(path.resolve(`${targetFolder}/${previousfilename}`),(err) => {
+            if (err) {console.log(err)};  
+        });
+    }
 
     if(req.file){
 
@@ -252,7 +257,7 @@ async function uploadProfilePic(req, res){
             fs.rename(tempPath, targetPath, (err) => {
                 if (err) return removeFilesOfUpdates(res, tempPath, 'The image could not be uploaded');
 
-                User.findByIdAndUpdate(userId, { picture: fileName }, { new: true }, (err, userUpdated) => {
+                User.findByIdAndUpdate(userId, { picture: filename }, { new: true }, (err, userUpdated) => {
                     
                     if (err) return res.status(500).send({ message: 'Error in the request. The image user can not be upadated' });
                     
@@ -271,16 +276,20 @@ async function uploadProfilePic(req, res){
 }
 
 function getProfilePic(req, res){
-    var imageFile = req.params.imageFile;
-    var pathFile = './uploads/users/'+ imageFile;
+    let imageFile = req.params.imageFile;
+    let userId = req.params.id;
+    let pathFile = path.resolve(USERSPATH, userId, imageFile);
 
-    fs.exists(pathFile, (exists) =>{
-        if(exists){
-            res.sendFile(path.resolve(pathFile));
-
-        }else{
-            res.status(200).send({message:'The image does not exits'});
+    // Validate if the file exists
+    fs.stat(pathFile, (err, stat) => {
+        if (err) {
+            if (err.code === 'ENOENT') {
+                return res.status(200).send({message:'The image does not exits'});
+            } else { // en caso de otro error
+                return res.status(500).send({message:'Error requesting the image.'});
+            }
         }
+        return res.sendFile(pathFile);
     });
 }
 
