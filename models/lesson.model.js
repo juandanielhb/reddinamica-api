@@ -3,7 +3,7 @@
 var mongoose = require('mongoose');
 var schema = mongoose.Schema;
 
-var userSchema = schema({
+var lessonSchema = schema({
     title:String,
     resume:String,
     references:String,
@@ -12,7 +12,6 @@ var userSchema = schema({
     leader:{type: schema.ObjectId, ref: 'User'},
     development_group:[{type: schema.ObjectId, ref: 'User'}],
     created_at:String,
-    state:String,
     published_at:String,
     knowledge_area:[String],
     grade:[String],
@@ -21,8 +20,8 @@ var userSchema = schema({
     entries:[{type: schema.ObjectId, ref: 'Entry'}],
     comments:[{type: schema.ObjectId, ref: 'Comment'}],
     files:[{type: schema.ObjectId, ref: 'File'}],
-    earlier_version:String,
-    next_version:String
+    earlier_version:{type: schema.ObjectId, ref: 'Lesson'},
+    next_version:{type: schema.ObjectId, ref: 'Lesson'}
 });
 
-module.exports = mongoose.model('Lesson', userSchema);
+module.exports = mongoose.model('Lesson', lessonSchema);

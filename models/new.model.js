@@ -4,13 +4,13 @@ var mongoose = require('mongoose');
 var schema = mongoose.Schema;
 
 var userSchema = schema({
-    created_at:String,
     title:String,
     picture:String,
     description:String,
+    created_at:String,
     author:{type: schema.ObjectId, ref:'User'},
     comments:[{type: schema.ObjectId, ref: 'Comment'}],
-    rating:Number
+    source:String
 });
 
 module.exports = mongoose.model('New', userSchema);

@@ -10,6 +10,8 @@ let app = express();
 let userRoutes = require('./routes/user.routes');
 let institutionRoutes = require('./routes/institution.routes');
 let cityRoutes = require('./routes/city.routes');
+let knowledgeAreaRoutes = require('./routes/knowledgeArea.routes');
+let professionRoutes = require('./routes/profession.routes');
 
 // Middlewares
 app.use(bodyParser.urlencoded({extended:false}));
@@ -28,6 +30,8 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api', cityRoutes);
 app.use('/api', institutionRoutes);
+app.use('/api', knowledgeAreaRoutes);
+app.use('/api', professionRoutes);
 app.use('/api', userRoutes);
 
 // Export

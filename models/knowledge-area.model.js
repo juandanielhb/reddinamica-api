@@ -4,7 +4,8 @@ var mongoose = require('mongoose');
 var schema = mongoose.Schema;
 
 var userSchema = schema({
-    name:String
+    name:String,
+    used:{type:Boolean, default: false}
 });
 
 module.exports = mongoose.model('Knowledge-area', userSchema);

@@ -7,7 +7,7 @@ var userSchema = schema({
     name:String,
     state:String,
     country:String,
-    used:{type:String, default: "false"}
+    used:{type:Boolean, default: false}
 });
 
 module.exports = mongoose.model('City', userSchema);

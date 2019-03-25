@@ -1,5 +1,5 @@
 {
     "PORT": 3800,
     "SECRET_KEY": "dummy_pass",
-    "ITEMS_PER_PAGE": 5
+    "ITEMS_PER_PAGE": 20
 }

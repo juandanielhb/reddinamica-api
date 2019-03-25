@@ -14,11 +14,11 @@ function saveInstitution(req, res) {
     let institution = new Institution();
 
     institution.name = params.name;
-    institution.website = params.website;
-    institution.level = params.level;
     institution.email = params.email;
+    institution.website = params.website;
     institution.telephone = params.telephone;
-    institution.city = params.city;
+    institution.city = params.city; 
+
 
     institution.save((err, institutionStored) => {
         if (err) return res.status(500).send({ message: 'The institution can not be saved' });
@@ -49,7 +49,7 @@ function deleteInstitution(req, res) {
     Institution.findOneAndRemove({ _id: institutionId, used: "false" }, (err, institutionRemoved) => {
         if (err) return res.status(500).send({ message: 'Error in the request. The institution can not be removed' });
 
-        if (!institutionRemoved) return res.status(404).send({ message: 'The institution can not be removed, it has already been used' });
+        if (!institutionRemoved) return res.status(404).send({ message: 'The institution can not be removed, it has already been used or it has not been found' });
 
         return res.status(200).send({ institution: institutionRemoved });
     });
@@ -79,6 +79,8 @@ function getInstitutions(req, res) {
 
 
 }
+
+
 
 module.exports = {
     saveInstitution,

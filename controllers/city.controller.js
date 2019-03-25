@@ -48,9 +48,7 @@ function saveCity(req, res){
         page = req.params.page;
     }
 
-    var itemsPerPage = ITEMS_PER_PAGE;
-
-    City.find().sort('name').paginate(page, itemsPerPage, (err, cities, total) =>{
+    City.find().sort('name').paginate(page, ITEMS_PER_PAGE, (err, cities, total) =>{
         if(err) return res.status(500).send({message: 'Error in the request. The cities were not found'});
 
         if(!cities) return res.status(404).send({message: 'No cities were found'});
@@ -58,7 +56,7 @@ function saveCity(req, res){
         return res.status(200).send({
                 cities: cities,               
                 total: total,
-                pages: Math.ceil(total/itemsPerPage)                
+                pages: Math.ceil(total/ITEMS_PER_PAGE)                
             });
         });
  }
@@ -70,7 +68,7 @@ function saveCity(req, res){
         console.log(err);
         if(err) return res.status(500).send({message:'Error in the request. The city can not be removed '});
 
-        if(!cityRemoved) return res.status(404).send({message: 'The city can not be removed, it has already been used'});        
+        if(!cityRemoved) return res.status(404).send({message: 'The city can not be removed, it has already been used or it has not been found'});        
         
         return res.status(200).send({city: cityRemoved});
     });       

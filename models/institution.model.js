@@ -5,12 +5,11 @@ var schema = mongoose.Schema;
 
 var userSchema = schema({
     name:String,
-    website:String,
-    level:[String],
     email:String,
-    telephone:String,    
-    used:{type:String, default:"false"},
-    city:{type: schema.ObjectId, ref: 'City'}
+    website:String,
+    telephone:String,
+    city: {type: schema.ObjectId, ref: 'City'},
+    used:{type:Boolean, default: false}
 });
 
 module.exports = mongoose.model('Institution', userSchema);

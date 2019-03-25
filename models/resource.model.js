@@ -3,16 +3,16 @@
 var mongoose = require('mongoose');
 var schema = mongoose.Schema;
 
-var userSchema = schema({
-    views:Number,
+var resourceSchema = schema({
     name:String,
     type:String,
     source:String,
     description:String,
     visible:String,
+    views:Number,
     comments:[{type: schema.ObjectId, ref: 'Comment'}],
     author:{type:schema.ObjectId, ref:'User'},
     created_at:String
 });
 
-module.exports = mongoose.model('Resource', userSchema);
+module.exports = mongoose.model('Resource', resourceSchema);
