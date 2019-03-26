@@ -14,7 +14,7 @@ const USERS_PATH = '../uploads/users/';
 
 api.post('/register', userController.saveUser);
 api.post('/login', userController.login);
-api.post('/user-update/:id', authMiddleware.ensureAuth, userController.updateUser);
+api.put('/user-update/:id', authMiddleware.ensureAuth, userController.updateUser);
 
 // api.get('/user/:id', authMiddleware.ensureAuth , userController.getUser);
 // api.get('/users/:page?', authMiddleware.ensureAuth , userController.getUsers);

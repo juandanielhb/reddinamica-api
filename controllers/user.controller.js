@@ -31,7 +31,6 @@ function saveUser(req, res) {
         user.state = params.state;
         user.role = params.role;
         user.postgraduate = params.postgraduate;
-        user.picture = params.picture;
         user.knowledge_area = params.knowledge_area;
         user.profession = params.profession;
         user.institution = params.institution;
@@ -133,7 +132,7 @@ function updateUser(req, res) {
     }
 
     User.findByIdAndUpdate(userId, update, { new: true }, (err, userUpdated) => {
-        // console.log(err);
+
         if (err) return res.status(500).send({ message: 'Error in the request. User has not been updated' });
 
         if (!userUpdated) return res.status(404).send({ message: 'The user can not be updated' });
