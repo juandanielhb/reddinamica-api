@@ -58,6 +58,17 @@ function saveArea(req, res){
         });
  }
 
+ function getAllAreas(req, res){
+
+    KnowledgeArea.find().sort('name').exec((err, areas) =>{
+        if(err) return res.status(500).send({message: 'Error in the request. The areas were not found'});
+
+        if(!areas) return res.status(404).send({message: 'No areas were found'});
+
+        return res.status(200).send({areas: areas});
+ });
+}
+
  function deleteArea(req, res){
     var areaId = req.params.id;    
 
@@ -76,7 +87,8 @@ function saveArea(req, res){
     saveArea,
     deleteArea,
     updateArea,
-    getAreas
+    getAreas,
+    getAllAreas
 }
 
 

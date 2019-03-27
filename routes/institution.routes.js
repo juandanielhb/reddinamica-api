@@ -10,10 +10,11 @@ var institutionController = require('../controllers/institution.controller');
 var load = require('../resources/loadData')
 
 
-api.post('/institution', [auth.ensureAuth, controlAccess.isAdmin], institutionController.saveInstitution);
+api.post('/institution', auth.ensureAuth, institutionController.saveInstitution);
 api.put('/institution/:id', [auth.ensureAuth, controlAccess.isAdmin], institutionController.updateInstitution);
 api.delete('/institution/:id', [auth.ensureAuth, controlAccess.isAdmin], institutionController.deleteInstitution);
 api.get('/institutions/:page?', institutionController.getInstitutions);
+api.get('/all-institutions', institutionController.getAllInstitutions);
 
 //Cargar datos
 api.post('/saveee', load.save);

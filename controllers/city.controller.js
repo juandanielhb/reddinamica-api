@@ -61,6 +61,18 @@ function saveCity(req, res){
         });
  }
 
+ function getAllCities(req, res){
+
+    City.find().sort('name').exec((err, cities) =>{
+        if(err) return res.status(500).send({message: 'Error in the request. The cities were not found'});
+
+        if(!cities) return res.status(404).send({message: 'No cities were found'});
+
+        return res.status(200).send({cities: cities});
+
+    });
+ }
+
  function deletecity(req, res){
     var cityId = req.params.id;    
 
@@ -79,7 +91,8 @@ function saveCity(req, res){
     saveCity,
     updateCity,
     deletecity,
-    getCities
+    getCities,
+    getAllCities
 }
 
 

@@ -58,6 +58,18 @@ function saveProfession(req, res){
         });
  }
 
+ function getAllProfessions(req, res){
+
+    Profession.find().sort('name').exec((err, professions)=>{
+        if(err) return res.status(500).send({message: 'Error in the request. The professions were not found'});
+
+        if(!professions) return res.status(404).send({message: 'No professions were found'});
+
+        return res.status(200).send({ professions: professions});
+        
+        });
+ }
+
  function deleteProfession(req, res){
     var professionId = req.params.id;    
 
@@ -76,7 +88,8 @@ function saveProfession(req, res){
     saveProfession,
     deleteProfession,
     updateProfession,
-    getProfessions
+    getProfessions,
+    getAllProfessions
 }
 
 
