@@ -5,21 +5,26 @@ let express = require('express');
 let userController = require('../controllers/user.controller');
 
 // Middleware
-let authMiddleware = require('../middlewares/auth.middleware');
+let auth = require('../middlewares/auth.middleware');
 let uploadMiddleware = require('../middlewares/multer.middleware');
+var controlAccess = require('../middlewares/controlAccess.middleware');
 
 let api = express.Router();
 
 const USERS_PATH = '../uploads/users/';
 
 api.post('/register', userController.saveUser);
+api.post('/registerbyAdmin', [auth.ensureAuth, controlAccess.isAdmin],  userController.saveUserByAdmin);
 api.post('/login', userController.login);
-api.put('/user-update/:id', authMiddleware.ensureAuth, userController.updateUser);
+api.put('/user-update/:id', auth.ensureAuth, userController.updateUser);
+api.delete('/user/:id', [auth.ensureAuth, controlAccess.isAdmin], userController.deleteUser);
 
-// api.get('/user/:id', authMiddleware.ensureAuth , userController.getUser);
-// api.get('/users/:page?', authMiddleware.ensureAuth , userController.getUsers);
+// api.get('/user/:id', auth.ensureAuth , userController.getUser);
+api.get('/users/:page?', auth.ensureAuth , userController.getUsers);
+api.get('/all-users', auth.ensureAuth , userController.getAllUsers);
+api.get('/new-users/:page?', [auth.ensureAuth, controlAccess.isAdmin], userController.getNewUsers);
 
-api.post('/upload-image-user/:id', [authMiddleware.ensureAuth, uploadMiddleware.uploadImage(USERS_PATH)] , userController.uploadProfilePic);
+api.post('/upload-image-user/:id', [auth.ensureAuth, uploadMiddleware.uploadImage(USERS_PATH)] , userController.uploadProfilePic);
 api.get('/get-image-user/:imageFile', userController.getProfilePic);
 
 

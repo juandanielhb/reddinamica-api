@@ -88,3 +88,6 @@ config.json
 
 # Uploaded files
 uploads/
+
+# Drive control
+*desktop.ini

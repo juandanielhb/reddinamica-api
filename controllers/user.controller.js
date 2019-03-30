@@ -5,6 +5,7 @@ let bcrypt = require('bcrypt-nodejs');
 let moment = require('moment');
 let fs = require('fs');
 let path = require('path');
+let uuidv4 = require('uuid/v4');
 
 // Services
 let jwt = require('../services/jwt.service');
@@ -17,8 +18,8 @@ const { ITEMS_PER_PAGE } = require('../config');
 const USERS_PATH = './uploads/users/';
 
 function saveUser(req, res) {
-    var params = req.body;
-    var user = new User();
+    let params = req.body;
+    let user = new User();
 
     if (params.name && params.surname && params.email &&
         params.password && params.role) {
@@ -28,7 +29,6 @@ function saveUser(req, res) {
         user.password = params.password;
         user.email = params.email.toLowerCase();
         user.about = params.about;
-        user.state = params.state;
         user.role = params.role;
         user.postgraduate = params.postgraduate;
         user.knowledge_area = params.knowledge_area;
@@ -47,6 +47,7 @@ function saveUser(req, res) {
                 bcrypt.hash(params.password, null, null, (err, hash) => {
                     user.password = hash;
                     user.save((err, userStored) => {
+                        console.log(err);
                         if (err) return res.status(500).send({ message: 'Error in the request. The user can not be saved' });
 
                         if (!userStored) return res.status(404).send({ message: 'The user has not been saved' });
@@ -62,11 +63,61 @@ function saveUser(req, res) {
     }
 }
 
+function saveUserByAdmin(req, res) {
+    let params = req.body;
+    let user = new User();
+
+    params.password = uuidv4().substr(0,6);
+    console.log(params.password);
+
+    if (params.name && params.surname && params.email && params.role) {
+
+        user.name = params.name;
+        user.surname = params.surname;
+        user.password = params.password;
+        user.email = params.email.toLowerCase();
+        user.about = params.about;
+        user.actived = true;
+        user.role = params.role;
+        user.postgraduate = params.postgraduate;
+        user.knowledge_area = params.knowledge_area;
+        user.profession = params.profession;
+        user.institution = params.institution;
+        user.city = params.city;
+        user.created_at = moment().unix();
+
+        // Check duplicate users
+        User.find({ email: user.email }, (err, users) => {
+            if (err) return res.status(500).send({ message: 'Error in the request. The user can not be found' });
+
+            if (users && users.length >= 1) {
+                return res.status(200).send({ message: 'User already exists' });
+            } else {
+                bcrypt.hash(params.password, null, null, (err, hash) => {
+                    user.password = hash;
+                    user.save((err, userStored) => {
+                        console.log(err);
+                        if (err) return res.status(500).send({ message: 'Error in the request. The user can not be saved' });
+
+                        if (!userStored) return res.status(404).send({ message: 'The user has not been saved' });
+
+                        // ******************* ENVIAR CORREO CON LA CONTRASEÑA 
+                        return res.status(200).send({ user: userStored });
+                    });
+                });
+            }
+        });
+
+    } else {
+        return res.status(200).send({ message: 'You must fill all the required fields *****' });
+    }
+}
+
 function login(req, res) {
-    var params = req.body;
+    let params = req.body;
     
-    var email = params.email;
-    var password = params.password;
+    let email = params.email;
+    let password = params.password;
     // Views is incremented by 0.5 because when is called login in the client is called 
     // twice
     User.findOneAndUpdate({ email: email }, {$inc: {visits: 0.5}}, {new: true}, (err, user) => {
@@ -104,31 +155,57 @@ function login(req, res) {
 }
 
 function getUser(req, res) {
-    var userId = req.params.id;
+    let userId = req.params.id;
 
     User.findById(userId, (err, user) => {
         if (err) return res.status(500).send({ message: 'Error in the request. User can not be found' });
 
         if (!user) return res.status(404).send({ message: 'User doesn\'t exist' });
 
-        followThisUser(req.user.sub, userId).then((value) => {
-            return res.status(200).send({
-                user,
-                value
-            });
+        return res.status(200).send({user: user});
+
+        // followThisUser(req.user.sub, userId).then((value) => {
+        //     return res.status(200).send({
+        //         user,
+        //         value
+        //     });
+        // });
+    });
+}
+
+// A new user is the one that has "actived" in false
+function getNewUsers(req, res) {
+    let page = 1;
+
+    if (req.params.page) {
+        page = req.params.page;
+    }
+
+    User.find({actived:false}).sort('name').paginate(page, ITEMS_PER_PAGE, (err, users, total) => {
+        if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
+
+        if (!users) return res.status(404).send({ message: 'It was not found any user' });
+
+        return res.status(200).send({
+            users,
+            total,
+            pages: Math.ceil(total / ITEMS_PER_PAGE)
         });
     });
 }
 
 function updateUser(req, res) {
-    var userId = req.params.id;
-    var update = req.body;
+    let userId = req.params.id;
+    let update = req.body;
 
     // Delete password property
     delete update.password;
 
+
     if (userId != req.user.sub) {
-        return res.status(401).send({ message: 'You do not have permission to update user data' });
+        if(!['admin','delegated_admin'].includes(req.user.role)){
+            return res.status(401).send({ message: 'You do not have permission to update user data' });
+        }
     }
 
     User.findByIdAndUpdate(userId, update, { new: true }, (err, userUpdated) => {
@@ -140,6 +217,18 @@ function updateUser(req, res) {
         return res.status(200).send({ user: userUpdated });
     });
 
+}
+
+function deleteUser(req, res) {
+
+    let userId = req.params.id;
+    User.findOneAndRemove({ _id: userId }, (err, userRemoved) => {
+        if (err) return res.status(500).send({ message: 'Error in the request. The user can not be removed' });
+
+        if (!userRemoved) return res.status(404).send({ message: 'The user can not be removed, it has already been used or it has not been found' });
+
+        return res.status(200).send({ user: userRemoved });
+    });
 }
 
 // Upload profile photo
@@ -171,7 +260,7 @@ function uploadProfilePic(req, res) {
 function getProfilePic(req, res) {
     let imageFile = req.params.imageFile;
     let pathFile = path.resolve(USERS_PATH, imageFile);
-    console.log(pathFile);
+    
 
     // Validate if the file exists
     fs.stat(pathFile, (err, stat) => {
@@ -188,13 +277,13 @@ function getProfilePic(req, res) {
 
 async function followThisUser(identityUserId, userId) {
 
-    var following = await FollowModel.findOne({ "user": identityUserId, "followed": userId }, (err, follow) => {
+    let following = await FollowModel.findOne({ "user": identityUserId, "followed": userId }, (err, follow) => {
         if (err) return handleError(err);
 
         return follow;
     });
 
-    var follower = await FollowModel.findOne({ "user": userId, "followed": identityUserId }, (err, follow) => {
+    let follower = await FollowModel.findOne({ "user": userId, "followed": identityUserId }, (err, follow) => {
         if (err) return handleError(err);
 
         return follow;
@@ -214,42 +303,79 @@ function getUsers(req, res) {
         page = req.params.page;
     }
 
-    User.find().sort('name').paginate(page, ITEMS_PER_PAGE, (err, users, total) => {
-        if (err) return res.status(500).send({ message: 'Error en la petición' });
+    User.find().sort('name')
+    .populate('city')
+    .populate('profession')
+    .populate('institution')
+    .paginate(page, ITEMS_PER_PAGE, (err, users, total) => {
+        if (err) return res.status(500).send({ message: 'Error in the request' });
 
-        if (!users) return res.status(404).send({ message: 'No hay usuarios disponibles' });
+        if (!users) return res.status(404).send({ message: 'There are no users' });
 
-        followsUserId(userIdLoggedIn).then((value) => {
-            return res.status(200).send({
-                users,
-                users_following: value.following,
-                users_followers: value.followers,
-                total,
-                pages: Math.ceil(total / ITEMS_PER_PAGE),
-
-            });
+        return res.status(200).send({
+            users,
+            total,
+            pages: Math.ceil(total / ITEMS_PER_PAGE)
         });
+
+        // followsUserId(userIdLoggedIn).then((value) => {
+        //     return res.status(200).send({
+        //         users,
+        //         users_following: value.following,
+        //         users_followers: value.followers,
+        //         total,
+        //         pages: Math.ceil(total / ITEMS_PER_PAGE),
+
+        //     });
+        // });
+
+    });
+}
+
+function getAllUsers(req, res) {
+
+    User.find().sort('name')
+    .populate('city')
+    .populate('profession')
+    .populate('institution')
+    .exec((err, users) => {
+        if (err) return res.status(500).send({ message: 'Error in the request' });
+
+        if (!users) return res.status(404).send({ message: 'There are not users' });
+
+        return res.status(200).send({users});
+
+        // followsUserId(userIdLoggedIn).then((value) => {
+        //     return res.status(200).send({
+        //         users,
+        //         users_following: value.following,
+        //         users_followers: value.followers,
+        //         total,
+        //         pages: Math.ceil(total / ITEMS_PER_PAGE),
+
+        //     });
+        // });
 
     });
 }
 
 async function followsUserId(userId) {
-    console.log(userId);
-    var following = await FollowModel.find({ user: userId }, { '_id': 0, '_v': 0, 'user': 0 }, (err, follows) => {
+    
+    let following = await FollowModel.find({ user: userId }, { '_id': 0, '_v': 0, 'user': 0 }, (err, follows) => {
         return follows;
     });
 
-    var following_clean = [];
+    let following_clean = [];
 
     following.forEach((follow) => {
         following_clean.push(follow.followed);
     });
 
-    var followers = await FollowModel.find({ followed: userId }, { '_id': 0, '_v': 0, 'followed': 0 }, (err, follows) => {
+    let followers = await FollowModel.find({ followed: userId }, { '_id': 0, '_v': 0, 'followed': 0 }, (err, follows) => {
         return follows;
     });
 
-    var followers_clean = [];
+    let followers_clean = [];
 
     followers.forEach((follow) => {
         followers_clean.push(follow.user);
@@ -273,7 +399,7 @@ async function removeFilesOfUpdates(res, httpCode, filePath, message) {
 }
 
 function getCounters(req, res) {
-    var userId = req.user.sub;
+    let userId = req.user.sub;
 
     if (req.params.id) {
         userId = req.params.id;
@@ -286,19 +412,19 @@ function getCounters(req, res) {
 }
 
 async function getCountFollow(userId) {
-    var following = await FollowModel.count({ user: userId }, (err, count) => {
+    let following = await FollowModel.count({ user: userId }, (err, count) => {
         if (err) return handleError(err);
 
         return count;
     });
 
-    var followed = await FollowModel.count({ followed: userId }, (err, count) => {
+    let followed = await FollowModel.count({ followed: userId }, (err, count) => {
         if (err) return handleError(err);
 
         return count;
     });
 
-    var publications = await PublicationModel.count({ user: userId }, (err, count) => {
+    let publications = await PublicationModel.count({ user: userId }, (err, count) => {
         if (err) return handleError(err);
 
         return count;
@@ -313,11 +439,15 @@ async function getCountFollow(userId) {
 
 module.exports = {
     saveUser,
+    saveUserByAdmin,
     login,
     getUser,
     getUsers,
+    getAllUsers,
+    getNewUsers,
     getCounters,
     updateUser,
+    deleteUser,
     uploadProfilePic,
     getProfilePic
 }

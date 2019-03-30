@@ -82,7 +82,7 @@ function getInstitutions(req, res) {
 
 function getAllInstitutions(req, res) {
 
-    Institution.find().sort('name').exec((err, institutions) => {
+    Institution.find().sort('name').populate('city').exec((err, institutions) => {
         if (err) return res.status(500).send({ message: 'Error in the request. The institutions were not found' });
 
         if (!institutions) return res.status(404).send({ message: 'No institutions were found' });
