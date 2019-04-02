@@ -9,6 +9,7 @@ let uuidv4 = require('uuid/v4');
 
 // Services
 let jwt = require('../services/jwt.service');
+let nodemailer = require('../services/nodemailer.service');
 
 // Models
 let User = require('../models/user.model');
@@ -32,9 +33,9 @@ function saveUser(req, res) {
         user.role = params.role;
         user.postgraduate = params.postgraduate;
         user.knowledge_area = params.knowledge_area;
-        user.profession = params.profession;
-        user.institution = params.institution;
-        user.city = params.city;
+        // user.profession = params.profession;
+        // user.institution = params.institution;
+        // user.city = params.city;
         user.created_at = moment().unix();
 
         // Check duplicate users
@@ -67,7 +68,7 @@ function saveUserByAdmin(req, res) {
     let params = req.body;
     let user = new User();
 
-    params.password = uuidv4().substr(0,6);
+    params.password = uuidv4().substr(0, 6);
     console.log(params.password);
 
     if (params.name && params.surname && params.email && params.role) {
@@ -93,6 +94,7 @@ function saveUserByAdmin(req, res) {
             if (users && users.length >= 1) {
                 return res.status(200).send({ message: 'User already exists' });
             } else {
+                
                 bcrypt.hash(params.password, null, null, (err, hash) => {
                     user.password = hash;
                     user.save((err, userStored) => {
@@ -115,43 +117,90 @@ function saveUserByAdmin(req, res) {
 
 function login(req, res) {
     let params = req.body;
-    
+
     let email = params.email;
     let password = params.password;
     // Views is incremented by 0.5 because when is called login in the client is called 
     // twice
-    User.findOneAndUpdate({ email: email }, {$inc: {visits: 0.5}}, {new: true}, (err, user) => {
-        if (err) return res.status(500).send({ message: 'Error in the request. The user can not be logged in' });
-        
-        if (user) {
-            bcrypt.compare(password, user.password, (err, check) => {
-                
-                if (check) {
-                    
+    User.findOneAndUpdate({ email: email }, { $inc: { visits: 0.5 } }, { new: true })
+        .populate('city')
+        .populate('profession')
+        .populate('institution')
+        .exec((err, user) => {
+            if (err) return res.status(500).send({ message: 'Error in the request. The user can not be logged in' });
 
-                    if (params.getToken) {
-                        // Generate and return token
-                        return res.status(200).send({ token: jwt.createToken(user) });
+            if (user) {
+                bcrypt.compare(password, user.password, (err, check) => {
+
+                    if (check) {
+
+
+                        if (params.getToken) {
+                            // Generate and return token
+                            return res.status(200).send({ token: jwt.createToken(user) });
+                        } else {
+                            // Return user data
+                            user.password = null;
+
+                            return res.status(200).send({ user: user });
+                        }
                     } else {
-                        // Return user data
-                        user.password = null;
-                        return res.status(200).send({ user: user });
+                        return res.status(200).send({
+                            message: 'The user can not be logged in!',
+                            email: true
+                        });
                     }
-                } else {
-                    return res.status(200).send({ 
-                        message: 'The user can not be logged in!',
-                        email: true
-                 });
-                }
-            });
-            
-        } else {
-            return res.status(200).send({ 
-                message: 'The email is not registered',
-                email: false
-            });
-        }
-    });
+                });
+
+            } else {
+                return res.status(200).send({
+                    message: 'The email is not registered',
+                    email: false
+                });
+            }
+        });
+}
+
+function validatePassword(req, res) {
+    let params = req.body;
+
+    let password = params.password;
+    let email = req.user.email;
+
+    User.findOne({ email: email })
+        .exec((err, user) => {
+            if (err) return res.status(500).send({ message: 'Error in the request. The user can not be validate' });
+
+            if (user) {
+                bcrypt.compare(password, user.password, (err, check) => {
+                    return res.status(200).send(check);
+                });
+            } else {
+                return res.status(404).send({ message: 'The user cannot be found' });
+            }
+
+        });
+}
+
+function changePassword(req, res) {
+    let params = req.body;    
+    let password = params.password;
+    let userId = req.user.sub;
+
+    bcrypt.hash(password, null, null, (err, hash) => {
+
+        User.findByIdAndUpdate(userId, {password: hash}, { new: true })
+        .exec((err, userUpdated) => {
+
+            if (err) return res.status(500).send({ message: 'Error in the request. User has not been updated' });
+
+            if (!userUpdated) return res.status(404).send({ message: 'The user can not be updated' });
+
+            userUpdated.password = null;
+
+            return res.status(200).send({ user: userUpdated });
+        });
+    });    
 }
 
 function getUser(req, res) {
@@ -162,7 +211,7 @@ function getUser(req, res) {
 
         if (!user) return res.status(404).send({ message: 'User doesn\'t exist' });
 
-        return res.status(200).send({user: user});
+        return res.status(200).send({ user: user });
 
         // followThisUser(req.user.sub, userId).then((value) => {
         //     return res.status(200).send({
@@ -181,7 +230,7 @@ function getNewUsers(req, res) {
         page = req.params.page;
     }
 
-    User.find({actived:false}).sort('name').paginate(page, ITEMS_PER_PAGE, (err, users, total) => {
+    User.find({ actived: false }).sort('name').paginate(page, ITEMS_PER_PAGE, (err, users, total) => {
         if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
 
         if (!users) return res.status(404).send({ message: 'It was not found any user' });
@@ -203,29 +252,35 @@ function updateUser(req, res) {
 
 
     if (userId != req.user.sub) {
-        if(!['admin','delegated_admin'].includes(req.user.role)){
+        if (!['admin', 'delegated_admin'].includes(req.user.role)) {
             return res.status(401).send({ message: 'You do not have permission to update user data' });
         }
     }
 
-    User.findByIdAndUpdate(userId, update, { new: true }, (err, userUpdated) => {
+    User.findByIdAndUpdate(userId, update, { new: true })
+        .populate('city')
+        .populate('profession')
+        .populate('institution')
+        .exec((err, userUpdated) => {
 
-        if (err) return res.status(500).send({ message: 'Error in the request. User has not been updated' });
+            if (err) return res.status(500).send({ message: 'Error in the request. User has not been updated' });
 
-        if (!userUpdated) return res.status(404).send({ message: 'The user can not be updated' });
+            if (!userUpdated) return res.status(404).send({ message: 'The user can not be updated' });
 
-        return res.status(200).send({ user: userUpdated });
-    });
+            return res.status(200).send({ user: userUpdated });
+        });
 
 }
 
 function deleteUser(req, res) {
 
-    let userId = req.params.id;
+    let userId = req.params.id;    
+
     User.findOneAndRemove({ _id: userId }, (err, userRemoved) => {
+        console.log(err)
         if (err) return res.status(500).send({ message: 'Error in the request. The user can not be removed' });
 
-        if (!userRemoved) return res.status(404).send({ message: 'The user can not be removed, it has already been used or it has not been found' });
+        if (!userRemoved) return res.status(404).send({ message: 'The user can not be removed, it has not been found' });
 
         return res.status(200).send({ user: userRemoved });
     });
@@ -260,7 +315,7 @@ function uploadProfilePic(req, res) {
 function getProfilePic(req, res) {
     let imageFile = req.params.imageFile;
     let pathFile = path.resolve(USERS_PATH, imageFile);
-    
+
 
     // Validate if the file exists
     fs.stat(pathFile, (err, stat) => {
@@ -304,63 +359,63 @@ function getUsers(req, res) {
     }
 
     User.find().sort('name')
-    .populate('city')
-    .populate('profession')
-    .populate('institution')
-    .paginate(page, ITEMS_PER_PAGE, (err, users, total) => {
-        if (err) return res.status(500).send({ message: 'Error in the request' });
+        .populate('city')
+        .populate('profession')
+        .populate('institution')
+        .paginate(page, ITEMS_PER_PAGE, (err, users, total) => {
+            if (err) return res.status(500).send({ message: 'Error in the request' });
 
-        if (!users) return res.status(404).send({ message: 'There are no users' });
+            if (!users) return res.status(404).send({ message: 'There are no users' });
 
-        return res.status(200).send({
-            users,
-            total,
-            pages: Math.ceil(total / ITEMS_PER_PAGE)
+            return res.status(200).send({
+                users,
+                total,
+                pages: Math.ceil(total / ITEMS_PER_PAGE)
+            });
+
+            // followsUserId(userIdLoggedIn).then((value) => {
+            //     return res.status(200).send({
+            //         users,
+            //         users_following: value.following,
+            //         users_followers: value.followers,
+            //         total,
+            //         pages: Math.ceil(total / ITEMS_PER_PAGE),
+
+            //     });
+            // });
+
         });
-
-        // followsUserId(userIdLoggedIn).then((value) => {
-        //     return res.status(200).send({
-        //         users,
-        //         users_following: value.following,
-        //         users_followers: value.followers,
-        //         total,
-        //         pages: Math.ceil(total / ITEMS_PER_PAGE),
-
-        //     });
-        // });
-
-    });
 }
 
 function getAllUsers(req, res) {
 
     User.find().sort('name')
-    .populate('city')
-    .populate('profession')
-    .populate('institution')
-    .exec((err, users) => {
-        if (err) return res.status(500).send({ message: 'Error in the request' });
+        .populate('city')
+        .populate('profession')
+        .populate('institution')
+        .exec((err, users) => {
+            if (err) return res.status(500).send({ message: 'Error in the request' });
 
-        if (!users) return res.status(404).send({ message: 'There are not users' });
+            if (!users) return res.status(404).send({ message: 'There are not users' });
 
-        return res.status(200).send({users});
+            return res.status(200).send({ users });
 
-        // followsUserId(userIdLoggedIn).then((value) => {
-        //     return res.status(200).send({
-        //         users,
-        //         users_following: value.following,
-        //         users_followers: value.followers,
-        //         total,
-        //         pages: Math.ceil(total / ITEMS_PER_PAGE),
+            // followsUserId(userIdLoggedIn).then((value) => {
+            //     return res.status(200).send({
+            //         users,
+            //         users_following: value.following,
+            //         users_followers: value.followers,
+            //         total,
+            //         pages: Math.ceil(total / ITEMS_PER_PAGE),
 
-        //     });
-        // });
+            //     });
+            // });
 
-    });
+        });
 }
 
 async function followsUserId(userId) {
-    
+
     let following = await FollowModel.find({ user: userId }, { '_id': 0, '_v': 0, 'user': 0 }, (err, follows) => {
         return follows;
     });
@@ -441,6 +496,8 @@ module.exports = {
     saveUser,
     saveUserByAdmin,
     login,
+    validatePassword,
+    changePassword,
     getUser,
     getUsers,
     getAllUsers,

@@ -84,7 +84,7 @@ typings/
 db/config.json
 
 # Base config
-config.json
+# config.json
 
 # Uploaded files
 uploads/
