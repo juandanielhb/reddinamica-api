@@ -16,6 +16,7 @@ function saveCity(req, res){
     city.name = params.name;
     city.state = params.state;
     city.country = params.country;
+    city.used = params.used;
   
     city.save((err, cityStored) =>{
         if(err) return res.status(500).send({message: 'Error in the request. The city can not be saved'});       

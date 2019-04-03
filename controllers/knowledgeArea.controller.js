@@ -14,6 +14,7 @@ function saveArea(req, res){
     let knowledgeArea = new KnowledgeArea(); 
     
     knowledgeArea.name = params.name;
+    knowledgeArea.used = params.used;
   
     knowledgeArea.save((err, areaStored) =>{
         if(err) return res.status(500).send({message: 'Error in the request. The area can not be saved'});       

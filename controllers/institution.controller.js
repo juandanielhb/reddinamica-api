@@ -18,6 +18,7 @@ function saveInstitution(req, res) {
     institution.website = params.website;
     institution.telephone = params.telephone;
     institution.city = params.city; 
+    institution.used = params.used;
 
 
     institution.save((err, institutionStored) => {

@@ -14,6 +14,7 @@ function saveProfession(req, res){
     let profession = new Profession(); 
     
     profession.name = params.name;
+    profession.used = params.used;
   
     profession.save((err, professionStored) =>{
         if(err) return res.status(500).send({message: 'Error in the request. The profession can not be saved'});       
