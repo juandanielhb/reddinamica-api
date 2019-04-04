@@ -37,26 +37,31 @@ let uploadImage = (targetPath) => {
 
 }
 
+let uploadFile = (targetPath) => {
 
-// let uploadFile = multer({
-//   storage,
-//   fileFilter: (req, file, cb) => {
-//     // Allowed extension files 
-//     const filetypes = /pdf|doc|txt|ppt|xls|avi|mpeg|mp4|mp3|jpeg|jpg|png|gif|svg/;
-//     const mimetype = filetypes.test(file.mimetype);
-//     const ext = path.extname(file.originalname);
-//     const extTest = filetypes.test(ext);
+  let storage = storageConfig(targetPath);
 
-//     if (mimetype && extTest) {
-//       return cb(null, true);
-//     }
+  return multer({
+    storage,
+    dest: path.join(__dirname, targetPath),
+    fileFilter: (req, file, cb) => {
+      // Allowed extension files 
+      const filetypes = /pdf|doc|txt|ppt|xls|avi|mpeg|mp4|mp3|jpeg|jpg|png|gif|svg/;
+      const mimetype = filetypes.test(file.mimetype);
+      const ext = path.extname(file.originalname);
+      const extTest = filetypes.test(ext);
 
-//     return cb(`The ${ext} extension is not allowed!`);
-//   }
-// }).single('file');
+      if (mimetype && extTest) {
+        return cb(null, true);
+      }
 
+      return cb(`The ${ext} extension is not allowed!`);
+    }
+  }).single('file');
+
+}
 
 module.exports = {
-  uploadImage
-  //uploadFile
+  uploadImage,
+  uploadFile
 }

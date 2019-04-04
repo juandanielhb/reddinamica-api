@@ -9,7 +9,7 @@ var controlAccess = require('../middlewares/controlAccess.middleware');
 var professionController = require('../controllers/profession.controller');
 
 
-api.post('/profession', auth.ensureAuth, professionController.saveProfession);
+api.post('/profession', professionController.saveProfession);
 api.put('/profession/:id', [auth.ensureAuth, controlAccess.isAdmin], professionController.updateProfession);
 api.delete('/profession/:id', [auth.ensureAuth, controlAccess.isAdmin], professionController.deleteProfession);
 api.get('/professions/:page?', professionController.getProfessions);

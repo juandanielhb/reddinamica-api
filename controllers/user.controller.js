@@ -9,14 +9,17 @@ let uuidv4 = require('uuid/v4');
 
 // Services
 let jwt = require('../services/jwt.service');
-let nodemailer = require('../services/nodemailer.service');
+let nodemailer = require('nodemailer');
 
 // Models
 let User = require('../models/user.model');
+let Follow = require('../models/follow.model');
+let Publication = require('../models/publication.model');
 
 // Constant
 const { ITEMS_PER_PAGE } = require('../config');
 const USERS_PATH = './uploads/users/';
+
 
 function saveUser(req, res) {
     let params = req.body;
@@ -33,9 +36,9 @@ function saveUser(req, res) {
         user.role = params.role;
         user.postgraduate = params.postgraduate;
         user.knowledge_area = params.knowledge_area;
-        // user.profession = params.profession;
-        // user.institution = params.institution;
-        // user.city = params.city;
+        user.profession = params.profession;
+        user.institution = params.institution;
+        user.city = params.city;
         user.created_at = moment().unix();
 
         // Check duplicate users
@@ -94,7 +97,7 @@ function saveUserByAdmin(req, res) {
             if (users && users.length >= 1) {
                 return res.status(200).send({ message: 'User already exists' });
             } else {
-                
+
                 bcrypt.hash(params.password, null, null, (err, hash) => {
                     user.password = hash;
                     user.save((err, userStored) => {
@@ -183,43 +186,48 @@ function validatePassword(req, res) {
 }
 
 function changePassword(req, res) {
-    let params = req.body;    
+    let params = req.body;
     let password = params.password;
     let userId = req.user.sub;
 
     bcrypt.hash(password, null, null, (err, hash) => {
 
-        User.findByIdAndUpdate(userId, {password: hash}, { new: true })
-        .exec((err, userUpdated) => {
+        User.findByIdAndUpdate(userId, { password: hash }, { new: true })
+            .exec((err, userUpdated) => {
 
-            if (err) return res.status(500).send({ message: 'Error in the request. User has not been updated' });
+                if (err) return res.status(500).send({ message: 'Error in the request. User has not been updated' });
 
-            if (!userUpdated) return res.status(404).send({ message: 'The user can not be updated' });
+                if (!userUpdated) return res.status(404).send({ message: 'The user can not be updated' });
 
-            userUpdated.password = null;
+                userUpdated.password = null;
 
-            return res.status(200).send({ user: userUpdated });
-        });
-    });    
+                return res.status(200).send({ user: userUpdated });
+            });
+    });
 }
 
 function getUser(req, res) {
     let userId = req.params.id;
 
-    User.findById(userId, (err, user) => {
-        if (err) return res.status(500).send({ message: 'Error in the request. User can not be found' });
+    User.findById(userId)
+        .populate('city')
+        .populate('profession')
+        .populate('institution')
+        .exec((err, user) => {
+            if (err) return res.status(500).send({ message: 'Error in the request. User can not be found' });
 
-        if (!user) return res.status(404).send({ message: 'User doesn\'t exist' });
+            if (!user) return res.status(404).send({ message: 'User doesn\'t exist' });
 
-        return res.status(200).send({ user: user });
+            user.password = null;
 
-        // followThisUser(req.user.sub, userId).then((value) => {
-        //     return res.status(200).send({
-        //         user,
-        //         value
-        //     });
-        // });
-    });
+            followThisUser(req.user.sub, userId).then((value) => {
+                return res.status(200).send({
+                    user,
+                    following: value.following,
+                    follower: value.follower
+                });
+            });
+        });
 }
 
 // A new user is the one that has "actived" in false
@@ -274,7 +282,7 @@ function updateUser(req, res) {
 
 function deleteUser(req, res) {
 
-    let userId = req.params.id;    
+    let userId = req.params.id;
 
     User.findOneAndRemove({ _id: userId }, (err, userRemoved) => {
         console.log(err)
@@ -332,13 +340,13 @@ function getProfilePic(req, res) {
 
 async function followThisUser(identityUserId, userId) {
 
-    let following = await FollowModel.findOne({ "user": identityUserId, "followed": userId }, (err, follow) => {
+    let following = await Follow.findOne({ "user": identityUserId, "followed": userId }, (err, follow) => {
         if (err) return handleError(err);
 
         return follow;
     });
 
-    let follower = await FollowModel.findOne({ "user": userId, "followed": identityUserId }, (err, follow) => {
+    let follower = await Follow.findOne({ "user": userId, "followed": identityUserId }, (err, follow) => {
         if (err) return handleError(err);
 
         return follow;
@@ -351,7 +359,7 @@ async function followThisUser(identityUserId, userId) {
 }
 
 function getUsers(req, res) {
-    let userIdLoggedIn = req.user.sub;
+    let userId = req.user.sub;
     let page = 1;
 
     if (req.params.page) {
@@ -367,27 +375,22 @@ function getUsers(req, res) {
 
             if (!users) return res.status(404).send({ message: 'There are no users' });
 
-            return res.status(200).send({
-                users,
-                total,
-                pages: Math.ceil(total / ITEMS_PER_PAGE)
+            followsUserId(userId).then((value) => {
+                return res.status(200).send({
+                    users,
+                    users_following: value.following,
+                    users_followers: value.followers,
+                    total,
+                    pages: Math.ceil(total / ITEMS_PER_PAGE),
+
+                });
             });
-
-            // followsUserId(userIdLoggedIn).then((value) => {
-            //     return res.status(200).send({
-            //         users,
-            //         users_following: value.following,
-            //         users_followers: value.followers,
-            //         total,
-            //         pages: Math.ceil(total / ITEMS_PER_PAGE),
-
-            //     });
-            // });
 
         });
 }
 
 function getAllUsers(req, res) {
+    let userId = req.user.sub;
 
     User.find().sort('name')
         .populate('city')
@@ -398,25 +401,20 @@ function getAllUsers(req, res) {
 
             if (!users) return res.status(404).send({ message: 'There are not users' });
 
-            return res.status(200).send({ users });
-
-            // followsUserId(userIdLoggedIn).then((value) => {
-            //     return res.status(200).send({
-            //         users,
-            //         users_following: value.following,
-            //         users_followers: value.followers,
-            //         total,
-            //         pages: Math.ceil(total / ITEMS_PER_PAGE),
-
-            //     });
-            // });
+            followsUserId(userId).then((value) => {
+                return res.status(200).send({
+                    users,
+                    users_following: value.following,
+                    users_followers: value.followers
+                });
+            });
 
         });
 }
 
 async function followsUserId(userId) {
 
-    let following = await FollowModel.find({ user: userId }, { '_id': 0, '_v': 0, 'user': 0 }, (err, follows) => {
+    let following = await Follow.find({ user: userId }, { '_id': 0, '_v': 0, 'user': 0 }, (err, follows) => {
         return follows;
     });
 
@@ -426,7 +424,7 @@ async function followsUserId(userId) {
         following_clean.push(follow.followed);
     });
 
-    let followers = await FollowModel.find({ followed: userId }, { '_id': 0, '_v': 0, 'followed': 0 }, (err, follows) => {
+    let followers = await Follow.find({ followed: userId }, { '_id': 0, '_v': 0, 'followed': 0 }, (err, follows) => {
         return follows;
     });
 
@@ -467,30 +465,66 @@ function getCounters(req, res) {
 }
 
 async function getCountFollow(userId) {
-    let following = await FollowModel.count({ user: userId }, (err, count) => {
+    let following = await Follow.count({ user: userId }, (err, count) => {
         if (err) return handleError(err);
 
         return count;
     });
 
-    let followed = await FollowModel.count({ followed: userId }, (err, count) => {
+    let followed = await Follow.count({ followed: userId }, (err, count) => {
         if (err) return handleError(err);
 
         return count;
     });
 
-    let publications = await PublicationModel.count({ user: userId }, (err, count) => {
+    let publications = await Publication.count({ user: userId }, (err, count) => {
         if (err) return handleError(err);
 
         return count;
     });
 
     return {
-        followingNumber: following,
-        followedNumber: followed,
-        publicationNumber: publications
+        following: following,
+        followed: followed,
+        publications: publications
     }
 }
+
+
+function prueba(req, res) {
+
+    console.log(process.env)
+    var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        tls: { rejectUnauthorized: false },
+        auth: {
+            user: 'juandanielhb@gmail.com',
+            pass: 'juandanielak++'
+        }
+    });
+
+    var mailOptions = {
+        from: 'juandanielhb@gmail.com',
+        to: 'juandanielhb@gmail.com, juandanielhb@hotmail.es',
+        subject: 'Sending Email using Node.js',
+        text: `Hi Smartherd, thank you for your nice Node.js tutorials.
+              I will donate 50$ for this course. Please send me payment options.`
+        // html: '<h1>Hi Smartherd</h1><p>Your Messsage</p>'        
+    };
+
+    transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+            console.log(error);
+            return res.status(200).send('error');
+        } else {
+            console.log('Email sent: ' + info.response);
+            return res.status(200).send('ok');
+        }
+    });
+
+    transporter.close();
+}
+
 
 module.exports = {
     saveUser,
@@ -506,5 +540,6 @@ module.exports = {
     updateUser,
     deleteUser,
     uploadProfilePic,
-    getProfilePic
+    getProfilePic,
+    prueba
 }

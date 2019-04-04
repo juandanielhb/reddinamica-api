@@ -78,7 +78,6 @@ function saveCity(req, res){
     var cityId = req.params.id;    
 
     City.findOneAndRemove({_id: cityId, used:"false"},(err,cityRemoved) => {
-        console.log(err);
         if(err) return res.status(500).send({message:'Error in the request. The city can not be removed '});
 
         if(!cityRemoved) return res.status(404).send({message: 'The city can not be removed, it has already been used or it has not been found'});        

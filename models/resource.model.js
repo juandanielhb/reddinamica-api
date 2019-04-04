@@ -8,10 +8,11 @@ var resourceSchema = schema({
     type:String,
     source:String,
     description:String,
-    visible:String,
+    visible:Boolean,
     views:Number,
     comments:[{type: schema.ObjectId, ref: 'Comment'}],
     author:{type:schema.ObjectId, ref:'User'},
+    files:[String],
     created_at:String
 });
 

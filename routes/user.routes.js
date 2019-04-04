@@ -22,13 +22,17 @@ api.post('/change-password', auth.ensureAuth, userController.changePassword);
 api.put('/user-update/:id', auth.ensureAuth, userController.updateUser);
 api.delete('/user/:id', [auth.ensureAuth, controlAccess.isAdmin], userController.deleteUser);
 api.delete('/user', auth.ensureAuth, userController.deleteUser);
-// api.get('/user/:id', auth.ensureAuth , userController.getUser);
+api.get('/user/:id', auth.ensureAuth , userController.getUser);
 api.get('/users/:page?', auth.ensureAuth , userController.getUsers);
 api.get('/all-users', auth.ensureAuth , userController.getAllUsers);
 api.get('/new-users/:page?', [auth.ensureAuth, controlAccess.isAdmin], userController.getNewUsers);
+api.get('/counters/:id?', auth.ensureAuth , userController.getCounters);
 
 api.post('/upload-image-user/:id', [auth.ensureAuth, uploadMiddleware.uploadImage(USERS_PATH)] , userController.uploadProfilePic);
 api.get('/get-image-user/:imageFile', userController.getProfilePic);
+
+
+api.post('/prueba', userController.prueba);
 
 
 module.exports = api;

@@ -19,8 +19,7 @@ function saveInstitution(req, res) {
     institution.telephone = params.telephone;
     institution.city = params.city; 
     institution.used = params.used;
-
-
+       
     institution.save((err, institutionStored) => {
         if (err) return res.status(500).send({ message: 'The institution can not be saved' });
 

@@ -12,6 +12,9 @@ let institutionRoutes = require('./routes/institution.routes');
 let cityRoutes = require('./routes/city.routes');
 let knowledgeAreaRoutes = require('./routes/knowledgeArea.routes');
 let professionRoutes = require('./routes/profession.routes');
+let followRoutes = require('./routes/follow.routes');
+let publicationRoutes = require('./routes/publication.routes');
+let messageRoutes = require('./routes/message.routes');
 
 // Middlewares
 app.use(bodyParser.urlencoded({extended:false}));
@@ -32,6 +35,9 @@ app.use('/api', cityRoutes);
 app.use('/api', institutionRoutes);
 app.use('/api', knowledgeAreaRoutes);
 app.use('/api', professionRoutes);
+app.use('/api', followRoutes);
+app.use('/api', publicationRoutes);
+app.use('/api', messageRoutes);
 app.use('/api', userRoutes);
 
 // Export
