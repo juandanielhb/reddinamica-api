@@ -378,8 +378,8 @@ function getUsers(req, res) {
             followsUserId(userId).then((value) => {
                 return res.status(200).send({
                     users,
-                    users_following: value.following,
-                    users_followers: value.followers,
+                    following: value.following,
+                    followers: value.followers,
                     total,
                     pages: Math.ceil(total / ITEMS_PER_PAGE),
 
@@ -404,8 +404,8 @@ function getAllUsers(req, res) {
             followsUserId(userId).then((value) => {
                 return res.status(200).send({
                     users,
-                    users_following: value.following,
-                    users_followers: value.followers
+                    following: value.following,
+                    followers: value.followers
                 });
             });
 

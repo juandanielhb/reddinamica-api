@@ -49,6 +49,8 @@ function getPublications(req, res){
         follows.forEach((follow)=>{
             followsClean.push(follow.followed);
         });
+
+        followsClean.push(req.user.sub);
         
         Publication.find({user: {"$in": followsClean}}).sort('-created_at').populate('user').paginate(page, ITEMS_PER_PAGE, (err, publications, total) => {
             
@@ -59,6 +61,7 @@ function getPublications(req, res){
             return res.status(200).send({
                 total: total,
                 pages: Math.ceil(total/ITEMS_PER_PAGE),
+                itemsPerPage: ITEMS_PER_PAGE,
                 publications
             });
         });

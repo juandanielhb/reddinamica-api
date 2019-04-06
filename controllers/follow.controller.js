@@ -21,21 +21,21 @@ function saveFollow(req, res){
         
         if(!followStored) return res.status(404).send({message: 'The follow has not been saved'});
 
-        return res.status(200).send({follow: followStored});
+        return res.status(200).send(followStored);
     });
 
 }
 
 function deleteFollow(req, res){
     let userId = req.user.sub;
-    let followId = req.body.id;
+    let followId = req.params.id;
 
     Follow.findOneAndRemove({ user: userId, followed: followId},(err,followRemoved) => {
         if(err) return res.status(500).send({message:'Error in the request. The follow can not be removed '});
 
         if(!followRemoved) return res.status(404).send({message: 'The follow can not be removed, it has not been found'});        
         
-        return res.status(200).send({follow: followRemoved});
+        return res.status(200).send(followRemoved);
     });       
  }
 
