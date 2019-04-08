@@ -20,8 +20,8 @@ api.post('/validate-password', auth.ensureAuth, userController.validatePassword)
 api.post('/change-password', auth.ensureAuth, userController.changePassword);
 
 api.put('/user-update/:id', auth.ensureAuth, userController.updateUser);
-api.delete('/user/:id', [auth.ensureAuth, controlAccess.isAdmin], userController.deleteUser);
 api.delete('/user', auth.ensureAuth, userController.deleteUser);
+api.delete('/user/:id', [auth.ensureAuth, controlAccess.isAdmin], userController.deleteUser);
 api.get('/user/:id', auth.ensureAuth , userController.getUser);
 api.get('/users/:page?', auth.ensureAuth , userController.getUsers);
 api.get('/all-users', auth.ensureAuth , userController.getAllUsers);

@@ -284,14 +284,24 @@ function deleteUser(req, res) {
 
     let userId = req.params.id;
 
+    if(!userId){
+        userId = req.user.sub;
+    }    
+
     User.findOneAndRemove({ _id: userId }, (err, userRemoved) => {
         console.log(err)
         if (err) return res.status(500).send({ message: 'Error in the request. The user can not be removed' });
 
         if (!userRemoved) return res.status(404).send({ message: 'The user can not be removed, it has not been found' });
 
+        Follow.find({$or: [{followed: userId}, {user: userId}]}).remove().exec();
+        Publication.find({user:userId}).remove().exec();
+
         return res.status(200).send({ user: userRemoved });
     });
+
+    
+
 }
 
 // Upload profile photo

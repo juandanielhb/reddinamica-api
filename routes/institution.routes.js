@@ -7,7 +7,7 @@ var auth = require('../middlewares/auth.middleware');
 var controlAccess = require('../middlewares/controlAccess.middleware');
 
 var institutionController = require('../controllers/institution.controller');
-var load = require('../resources/loadData')
+// var load = require('../resources/loadData')
 
 
 api.post('/institution', institutionController.saveInstitution);
@@ -17,6 +17,6 @@ api.get('/institutions/:page?', institutionController.getInstitutions);
 api.get('/all-institutions', institutionController.getAllInstitutions);
 
 //Cargar datos
-api.post('/saveee', load.save);
+// api.post('/saveee', load.save);
 
 module.exports = api;

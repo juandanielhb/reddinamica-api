@@ -62,6 +62,7 @@ function deleteFollow(req, res){
         return res.status(200).send({
             total: total,
             pages: Math.ceil(total/ITEMS_PER_PAGE),
+            itemsPerPage: ITEMS_PER_PAGE,
             follows
         })
     });
@@ -91,6 +92,7 @@ function getFollowersUsers(req, res){
         return res.status(200).send({
             total: total,
             pages: Math.ceil(total/ITEMS_PER_PAGE),
+            itemsPerPage: ITEMS_PER_PAGE,
             follows
         })
     });
