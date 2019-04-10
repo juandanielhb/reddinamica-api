@@ -101,7 +101,7 @@ function saveUserByAdmin(req, res) {
                 bcrypt.hash(params.password, null, null, (err, hash) => {
                     user.password = hash;
                     user.save((err, userStored) => {
-                        console.log(err);
+                        
                         if (err) return res.status(500).send({ message: 'Error in the request. The user can not be saved' });
 
                         if (!userStored) return res.status(404).send({ message: 'The user has not been saved' });
@@ -137,10 +137,10 @@ function login(req, res) {
 
                     if (check) {
 
-
                         if (params.getToken) {
                             // Generate and return token
-                            return res.status(200).send({ token: jwt.createToken(user) });
+                            return res.status(200).send({ token: jwt.createToken(user)});
+
                         } else {
                             // Return user data
                             user.password = null;

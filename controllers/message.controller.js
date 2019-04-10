@@ -42,7 +42,7 @@ function getReceiveMessages(req, res){
         page = req.params.page;
     }
 
-    Message.find({receiver: userId}).populate('emitter', 'name surname picture _id').paginate(page, ITEMS_PER_PAGE, (err, messages, total) =>{
+    Message.find({receiver: userId}).sort('-created_at').populate('emitter', 'name surname role picture _id').paginate(page, ITEMS_PER_PAGE, (err, messages, total) =>{
         if(err) return res.status(500).send({message: 'Error in the request. The message cannot be obtained.'});
 
         if(!messages) return res.status(404).send({message: 'There are no messages'});
@@ -65,7 +65,7 @@ function getEmittedMessages(req, res){
         page = req.params.page;
     }
 
-    Message.find({emitter: userId}).populate('emitter receiver', 'name surname picture _id').paginate(page, ITEMS_PER_PAGE, (err, messages, total) =>{
+    Message.find({emitter: userId}).sort('-created_at').populate('receiver', 'name surname picture role _id').paginate(page, ITEMS_PER_PAGE, (err, messages, total) =>{
         if(err) return res.status(500).send({message: 'Error in the request. The message cannot be obtained.'});
 
         if(!messages) return res.status(404).send({message: 'There are no messages'});
@@ -102,11 +102,23 @@ function setViewedMessage(req, res){
     });
 }
 
+function deleteMessage(req, res) {
+    let messageId = req.params.id;
+
+    Message.findByIdAndRemove(messageId, (err, messageRemoved) => {
+        if (err) return res.status(500).send({ message: 'Error in the request. It can not be removed the message' });
+
+        if (!messageRemoved) return res.status(404).send({ message: 'The publication has not been removed' });
+
+        return res.status(200).send({ message: messageRemoved });
+    });
+}
 
 module.exports = {
     saveMessage,
     getReceiveMessages,
     getEmittedMessages,
     getUnviewedMessages,
-    setViewedMessage
+    setViewedMessage,
+    deleteMessage
 };
