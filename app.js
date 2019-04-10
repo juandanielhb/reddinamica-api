@@ -14,6 +14,7 @@ let knowledgeAreaRoutes = require('./routes/knowledgeArea.routes');
 let professionRoutes = require('./routes/profession.routes');
 let followRoutes = require('./routes/follow.routes');
 let publicationRoutes = require('./routes/publication.routes');
+let commentRoutes = require('./routes/comment.routes');
 let messageRoutes = require('./routes/message.routes');
 
 // Middlewares
@@ -37,6 +38,7 @@ app.use('/api', knowledgeAreaRoutes);
 app.use('/api', professionRoutes);
 app.use('/api', followRoutes);
 app.use('/api', publicationRoutes);
+app.use('/api', commentRoutes);
 app.use('/api', messageRoutes);
 app.use('/api', userRoutes);
 

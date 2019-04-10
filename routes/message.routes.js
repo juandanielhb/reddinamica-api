@@ -13,6 +13,6 @@ api.get('/my-messages/:page?', authMiddleware.ensureAuth, messageController.getR
 api.get('/messages/:page?', authMiddleware.ensureAuth, messageController.getEmittedMessages);
 api.get('/unviewed-messages', authMiddleware.ensureAuth, messageController.getUnviewedMessages);
 
-api.put('/setviewed-messages',  authMiddleware.ensureAuth, messageController.setViewedMessage);
+api.put('/setviewed_messages',  authMiddleware.ensureAuth, messageController.setViewedMessage);
 
 module.exports = api;

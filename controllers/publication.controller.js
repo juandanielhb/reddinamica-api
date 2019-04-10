@@ -11,6 +11,7 @@ let path = require('path');
 let Publication = require('../models/publication.model');
 let User = require('../models/user.model');
 let Follow = require('../models/follow.model');
+let Comment = require('../models/comment.model');
 
 const POST_PATH = './uploads/posts/';
 
@@ -51,7 +52,44 @@ function getPublications(req, res) {
 
         followsClean.push(req.user.sub);
 
-        Publication.find({ user: { "$in": followsClean } }).sort('-created_at').populate('user').paginate(page, ITEMS_PER_PAGE, (err, publications, total) => {
+        Publication.find({ user: { "$in": followsClean } })
+            .sort('-created_at')
+            .populate({
+                path: 'comments',
+                populate: { path: 'user', select: 'name surname picture _id' }
+            })
+            .populate('user', 'name surname picture _id')
+            .paginate(page, ITEMS_PER_PAGE, (err, publications, total) => {
+
+                if (err) return res.status(500).send({ message: 'Error in the request. It can not be get the publications' });
+
+                if (!publications) return res.status(404).send({ message: 'There are no publications' });
+
+                return res.status(200).send({
+                    total: total,
+                    pages: Math.ceil(total / ITEMS_PER_PAGE),
+                    itemsPerPage: ITEMS_PER_PAGE,
+                    publications
+                });
+            });
+    });
+}
+
+function getUserPublications(req, res) {
+    let page = 1;
+    let userId = req.params.id;
+
+    if (req.params.page) {
+        page = req.params.page;
+    }
+
+    Publication.find({ user: userId })
+        .sort('-created_at')
+        .populate({
+            path: 'comments',
+            populate: { path: 'user', select: 'name surname picture _id' }
+        })
+        .paginate(page, ITEMS_PER_PAGE, (err, publications, total) => {
 
             if (err) return res.status(500).send({ message: 'Error in the request. It can not be get the publications' });
 
@@ -64,31 +102,6 @@ function getPublications(req, res) {
                 publications
             });
         });
-    });
-}
-
-function getUserPublications(req, res) {
-    let page = 1;
-    let userId = req.params.id;
-
-    if (req.params.page) {
-        page = req.params.page;
-    }
-
-    Publication.find({ user: userId }).sort('-created_at').paginate(page, ITEMS_PER_PAGE, (err, publications, total) => {
-
-        if (err) return res.status(500).send({ message: 'Error in the request. It can not be get the publications' });
-
-        if (!publications) return res.status(404).send({ message: 'There are no publications' });
-
-        return res.status(200).send({
-            total: total,
-            pages: Math.ceil(total / ITEMS_PER_PAGE),
-            itemsPerPage: ITEMS_PER_PAGE,
-            publications
-        });
-    });
-
 }
 
 
@@ -112,7 +125,14 @@ function deletePublication(req, res) {
 
         if (!publicationRemoved) return res.status(404).send({ message: 'The publication has not been removed' });
 
-        return res.status(200).send({ publication: publicationRemoved });
+        Comment.remove({'_id':{'$in':publicationRemoved.comments}}, (err)=> {
+            if(err){
+                return res.status(500).send({ message: 'Error in the request. It can not be removed the publication comments' });
+            }
+
+            return res.status(200).send({ publication: publicationRemoved });
+        })
+
     });
 }
 
@@ -120,8 +140,6 @@ function uploadPublicationFile(req, res) {
     let publicationId = req.params.id;
     let filePath = req.file.path;
     let filename = req.file.filename;
-
-
 
     if (req.file) {
 
@@ -147,6 +165,33 @@ function uploadPublicationFile(req, res) {
     }
 }
 
+function updatePublicationComments(req, res) {
+    let publicationId = req.params.id;
+    let commentId = req.body._id;
+
+    Publication.findByIdAndUpdate( publicationId, { '$addToSet': { comments: commentId } }, { new: true }, (err, publicationUpdated) => {
+        if (err) return removeFilesOfUpdates(res, 500, filePath, 'Error in the request. The publication can not be upadated');
+
+        if (!publicationUpdated) return removeFilesOfUpdates(res, 404, filePath, 'The publication has not been updated');
+
+        return res.status(200).send({ publication: publicationUpdated });
+    });
+
+}
+
+function updatePublication(req, res) {
+    let publication = req.params.id;    
+
+    Publication.findByIdAndUpdate( publicationId, { '$addToSet': { comments: commentId } }, { new: true }, (err, publicationUpdated) => {
+        if (err) return removeFilesOfUpdates(res, 500, filePath, 'Error in the request. The publication can not be upadated');
+
+        if (!publicationUpdated) return removeFilesOfUpdates(res, 404, filePath, 'The publication has not been updated');
+
+        return res.status(200).send({ publication: publicationUpdated });
+    });
+
+}
+
 function getPublicacionFile(req, res) {
     let file = req.params.file;
     let pathFile = path.resolve(POST_PATH, file);
@@ -163,7 +208,6 @@ function getPublicacionFile(req, res) {
     });
 }
 
-
 async function removeFilesOfUpdates(res, httpCode, filePath, message) {
     await fs.unlink(filePath, (err) => {
         return res.status(httpCode).send({ message: message })
@@ -176,6 +220,8 @@ module.exports = {
     getPublications,
     getPublication,
     deletePublication,
+    updatePublication,
+    updatePublicationComments,
     uploadPublicationFile,
     getPublicacionFile
 };

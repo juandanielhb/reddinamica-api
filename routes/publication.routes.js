@@ -19,5 +19,6 @@ api.get('/user-publications/:id/:page?', auth.ensureAuth, publicationController.
 api.get('/publication/:id', auth.ensureAuth, publicationController.getPublication);
 api.post('/upload-file-post/:id', [auth.ensureAuth, uploadMiddleware.uploadImage(POST_PATH)],publicationController.uploadPublicationFile);
 api.get('/get-image-post/:file', publicationController.getPublicacionFile);
+api.put('/publication-comment/:id', auth.ensureAuth, publicationController.updatePublicationComments);
 
 module.exports = api;
