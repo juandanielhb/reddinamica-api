@@ -7,7 +7,7 @@ var userSchema = schema({
     created_at:String,
     user:{type: schema.ObjectId, ref:'User'},
     text:String,
-    rating:{type: Number, default:0}
+    score:{type: Number, default:0}
 });
 
 module.exports = mongoose.model('Comment', userSchema);

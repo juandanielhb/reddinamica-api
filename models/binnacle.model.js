@@ -3,12 +3,11 @@
 var mongoose = require('mongoose');
 var schema = mongoose.Schema;
 
-var userSchema = schema({
+var entrySchema = schema({
     created_at:String,
     user:{type: schema.ObjectId, ref:'User'},
     description:String,
-    file:[String],
-    lesson:{type:schema.ObjectId, ref:'Lesson'}
+    url:[String]    
 });
 
-module.exports = mongoose.model('Binnacle', userSchema);
+module.exports = mongoose.model('Entry', entrySchema);
