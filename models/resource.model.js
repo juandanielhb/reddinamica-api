@@ -8,13 +8,14 @@ var resourceSchema = schema({
     type:String,
     source:String,
     description:String,
-    visible:Boolean,
-    downloads:Number,
-    score:{type: Number, default:0},
+    visible:{type:Boolean, default: false},
+    downloads:{type:Number, default: 0},
+    score:{type: Number, default: 0},
     justification:String,
+    accepted:{type:Boolean, default: false},
     author:{type:schema.ObjectId, ref:'User'},
     url:String,
-    files:[String],
+    file:String,
     comments:[{type: schema.ObjectId, ref: 'Comment'}],
     created_at:String
 });

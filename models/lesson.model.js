@@ -7,22 +7,27 @@ var lessonSchema = schema({
     title:String,
     resume:String,
     references:String,
+    justification:String,
+    level:String,
     state:String,
+    type:String,
     expert:{type: schema.ObjectId, ref: 'User'},
+    author:{type: schema.ObjectId, ref: 'User'},
     leader:{type: schema.ObjectId, ref: 'User'},
     development_group:[{type: schema.ObjectId, ref: 'User'}],
     created_at:String,
     published_at:String,
     visible:Boolean,
-    knowledge_area:[String],
+    accepted:{type:Boolean, default: false},
+    knowledge_area:[{type: schema.ObjectId, ref: 'Knowledge-area'},],
     grade:[String],
     views:Number,
     score:{type: Number, default:0},
     entries:[{type: schema.ObjectId, ref: 'Entry'}],
     comments:[{type: schema.ObjectId, ref: 'Comment'}],
-    files:[{type: schema.ObjectId, ref: 'File'}],
-    earlier_version:{type: schema.ObjectId, ref: 'Lesson'},
-    next_version:{type: schema.ObjectId, ref: 'Lesson'}
+    files:[{type: schema.ObjectId, ref: 'File'}], //rEVISAR COMO PONERLO    
+    father_lesson:{type: schema.ObjectId, ref: 'Lesson'},
+    version:{type: Number, default:1}
 });
 
 module.exports = mongoose.model('Lesson', lessonSchema);

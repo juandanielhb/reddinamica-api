@@ -1,4 +1,6 @@
 'use strict'
+const { FILES_SIZE_MB } = require("../config");
+
 let uuidv4 = require('uuid/v4');
 
 let multer = require('multer');
@@ -35,7 +37,7 @@ let uploadImage = (targetPath) => {
       // Allowed extension files 
       const filetypes = /jpeg|jpg|png|gif|svg/;
       const mimetype = filetypes.test(file.mimetype);
-      const ext = path.extname(file.originalname);
+      const ext = path.extname(file.originalname.toLowerCase());
       const extTest = filetypes.test(ext);
 
       if (mimetype && extTest) {
@@ -45,7 +47,7 @@ let uploadImage = (targetPath) => {
       return cb(`The ${ext} extension is not allowed!`);
     },
     limits: {
-      fileSize: 20 * 1000000
+      fileSize: FILES_SIZE_MB * 1000000
     }
   }).single('image');
 
@@ -62,7 +64,7 @@ let uploadFile = (targetPath) => {
       // Allowed extension files 
       const filetypes = /pdf|doc|txt|ppt|xls|avi|mpeg|mp4|mp3|jpeg|jpg|png|gif|svg|exe|rar|zip/;
       const mimetype = filetypes.test(file.mimetype);      
-      const ext = path.extname(file.originalname);
+      const ext = path.extname(file.originalname.toLowerCase());
       const extTest = filetypes.test(ext);
       
 
@@ -73,7 +75,7 @@ let uploadFile = (targetPath) => {
       return cb(`The ${ext} extension is not allowed!`);
     },
     limits: {
-      fileSize: 20 * 1000000
+      fileSize: FILES_SIZE_MB * 1000000
     }
   }).single('file');
 
@@ -90,7 +92,7 @@ let uploadFiles = (targetPath) => {
       // Allowed extension files 
       const filetypes = /pdf|doc|txt|ppt|xls|avi|mpeg|mp4|mp3|jpeg|jpg|png|gif|svg/;
       const mimetype = filetypes.test(file.mimetype);
-      const ext = path.extname(file.originalname);
+      const ext = path.extname(file.originalname.toLowerCase());
       const extTest = filetypes.test(ext);
 
       if (mimetype && extTest) {
@@ -100,7 +102,7 @@ let uploadFiles = (targetPath) => {
       return cb(`The ${ext} extension is not allowed!`);
     },
     limits: {
-      fileSize: 20 * 1000000
+      fileSize: FILES_SIZE_MB * 1000000
     },
   }).array('file', 5);
 
