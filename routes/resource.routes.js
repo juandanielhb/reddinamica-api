@@ -12,11 +12,14 @@ var resourceController = require('../controllers/resource.controller');
 const RESOURCE_PATH = '../uploads/resources/';
 
 api.post('/resource', auth.ensureAuth, resourceController.saveResource);
+
 api.post('/upload-resource/:id', [auth.ensureAuth, uploadMiddleware.uploadFile(RESOURCE_PATH)],resourceController.uploadResourceFile);
 api.get('/get-resource/:file', resourceController.getResourceFile);
-// api.put('/city/:id', [auth.ensureAuth, controlAccess.isAdmin], resourceController.updateCity);
-// api.delete('/city/:id', [auth.ensureAuth, controlAccess.isAdmin], resourceController.deletecity);
-// api.get('/cities/:page?',auth.ensureAuth, resourceController.getCities);
-// api.get('/all-cities', auth.ensureAuth, resourceController.getAllCities);
+
+api.put('/resource/:id', [auth.ensureAuth, controlAccess.isAdmin], resourceController.updateResource);
+api.delete('/resource/:id', [auth.ensureAuth, controlAccess.isAdmin], resourceController.deleteResource);
+
+api.get('/resources/:page?', auth.ensureAuth, resourceController.getResources);
+api.get('/all-resources', auth.ensureAuth, resourceController.getAllResources);
 
 module.exports = api;

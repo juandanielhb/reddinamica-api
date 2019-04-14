@@ -9,7 +9,7 @@ var lessonCall = schema({
     references:String,
     knowledge_area:[String],
     grade:[String],
-    amount:Number,    
+    amount:Number,
     author:{type: schema.ObjectId, ref: 'User'},
     published_by:{type: schema.ObjectId, ref: 'User'},
     interested:[{type: schema.ObjectId, ref:'User'}],

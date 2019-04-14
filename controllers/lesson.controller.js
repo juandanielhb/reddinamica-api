@@ -17,15 +17,18 @@ function saveLesson(req, res) {
 
     let lesson = new Lesson();
 
-    lesson.name = params.name;
-    lesson.type = params.type; // [ document, video, link, software]
-    lesson.description = params.description;
-    lesson.source = params.source;
-    lesson.justification = params.justification;
+    lesson.title = params.title;
+    lesson.resume = params.resume; 
+    lesson.references = params.references;
+    lesson.level = params.level;
+    lesson.type = params.type;
+    lesson.knowledge_area = params.knowledge_area;
     lesson.author = params.author;
     lesson.accepted = params.accepted;
+    lesson.justification = params.justification;
+    lesson.state = params.state;
+    
     lesson.created_at = moment().unix();    
-    lesson.link = params.link;
 
     lesson.save((err, lessonStored) => {
         if (err) return res.status(500).send({ message: 'Error in the request. The lesson can not be saved' });
@@ -83,94 +86,86 @@ function saveLesson(req, res) {
 //     });
 // }
 
-// function deleteLesson(req, res) {
-//     let lessonId = req.params.id;
+function deleteLesson(req, res) {
+    let lessonId = req.params.id;
 
-//     lesson.findByIdAndRemove({ user: req.user.sub, '_id': lessonId }, (err, lessonRemoved) => {
-//         if (err) return res.status(500).send({ message: 'Error in the request. It can not be removed the lesson' });
+    lesson.findByIdAndRemove({ user: req.user.sub, '_id': lessonId }, (err, lessonRemoved) => {
+        if (err) return res.status(500).send({ message: 'Error in the request. It can not be removed the lesson' });
 
-//         if (!lessonRemoved) return res.status(404).send({ message: 'The lesson has not been removed' });
+        if (!lessonRemoved) return res.status(404).send({ message: 'The lesson has not been removed' });
 
-//         Comment.remove({'_id':{'$in':lessonRemoved.comments}}, (err)=> {
-//             if(err){
-//                 return res.status(500).send({ message: 'Error in the request. It can not be removed the lesson comments' });
-//             }
+        Comment.remove({'_id':{'$in': lessonRemoved.comments}}, (err)=> {
+            if(err){
+                return res.status(500).send({ message: 'Error in the request. It can not be removed the lesson comments' });
+            }
 
-//             return res.status(200).send({ lesson: lessonRemoved });
-//         })
+            return res.status(200).send({ lesson: lessonRemoved });
+        })
 
-//     });
-// }
+    });
+}
 
-// function updateCity(req, res) {
-//     var cityId = req.params.id;
-//     var updateData = req.body;
+function updateLesson(req, res) {
+    var lessonId = req.params.id;
+    var updateData = req.body;
 
 
-//     City.findByIdAndUpdate(cityId, updateData, { new: true }, (err, cityUpdated) => {
-//         if (err) return res.status(500).send({ message: 'Error in the request. The city can not be updated' });
+    lesson.findByIdAndUpdate(lessonId, updateData, { new: true }, (err, lessonUpdated) => {
+        if (err) return res.status(500).send({ message: 'Error in the request. The lesson can not be updated' });
 
-//         if (!cityUpdated) return res.status(404).send({ message: 'The city has not been updated' });
+        if (!lessonUpdated) return res.status(404).send({ message: 'The lesson has not been updated' });
 
-//         return res.status(200).send({ city: cityUpdated });
-//     });
-// }
+        return res.status(200).send({ lesson: lessonUpdated });
+    });
+}
 
-// function getCities(req, res) {
-//     var page = 1;
+function getLessons(req, res) {
+    var page = 1;
 
-//     if (req.params.page) {
-//         page = req.params.page;
-//     }
+    if (req.params.page) {
+        page = req.params.page;
+    }
 
-//     City.find().sort('name').paginate(page, ITEMS_PER_PAGE, (err, cities, total) => {
-//         if (err) return res.status(500).send({ message: 'Error in the request. The cities were not found' });
+    Lesson.find().sort('name').paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
+        if (err) return res.status(500).send({ message: 'Error in the request. The lessons were not found' });
 
-//         if (!cities) return res.status(404).send({ message: 'No cities were found' });
+        if (!lessons) return res.status(404).send({ message: 'No lessons were found' });
 
-//         return res.status(200).send({
-//             cities: cities,
-//             total: total,
-//             pages: Math.ceil(total / ITEMS_PER_PAGE)
-//         });
-//     });
-// }
+        return res.status(200).send({
+            lessons: lessons,
+            total: total,
+            pages: Math.ceil(total / ITEMS_PER_PAGE)
+        });
+    });
+}
 
-// function getAllCities(req, res) {
+function getAllLessons(req, res) {
 
-//     City.find().sort('name').exec((err, cities) => {
-//         if (err) return res.status(500).send({ message: 'Error in the request. The cities were not found' });
+    Lesson.find().sort('name').exec((err, lessons) => {
+        if (err) return res.status(500).send({ message: 'Error in the request. The lessons were not found' });
 
-//         if (!cities) return res.status(404).send({ message: 'No cities were found' });
+        if (!lessons) return res.status(404).send({ message: 'No lessons were found' });
 
-//         return res.status(200).send({ cities: cities });
+        return res.status(200).send({ lessons: lessons });
 
-//     });
-// }
+    });
+}
 
-// function deletecity(req, res) {
-//     var cityId = req.params.id;
-
-//     City.findOneAndRemove({ _id: cityId, used: "false" }, (err, cityRemoved) => {
-//         if (err) return res.status(500).send({ message: 'Error in the request. The city can not be removed ' });
-
-//         if (!cityRemoved) return res.status(404).send({ message: 'The city can not be removed, it has already been used or it has not been found' });
-
-//         return res.status(200).send({ city: cityRemoved });
-//     });
-// }
-
-// async function removeFilesOfUpdates(res, httpCode, filePath, message) {
-//     await fs.unlink(filePath, (err) => {
-//         return res.status(httpCode).send({ message: message })
-//     });
-// }
+async function removeFilesOfUpdates(res, httpCode, filePath, message) {
+    await fs.unlink(filePath, (err) => {
+        return res.status(httpCode).send({ message: message })
+    });
+}
 
 module.exports = {
     saveLesson,
-    uploadLessonFile,
-    getLessonFile,
-    deleteLesson
+    deleteLesson,
+    updateLesson,
+    getLessons,
+    getAllLessons
+    // uploadLessonFile,
+    // getLessonFile,
+    
 }
 
 

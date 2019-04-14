@@ -25,6 +25,18 @@ function saveArea(req, res){
     });  
     
  }
+
+function saveAreas(req, res){
+    let params = req.body;
+
+    KnowledgeArea.insertMany(params, (error, areasStored) =>{
+        if(error) return res.status(500).send({message: 'Error in the request. The areas can not be saved'});       
+        
+        if(!areasStored) return res.status(404).send({message: 'The areas have not been saved'});
+
+        return res.status(200).send({areas: areasStored});
+    });
+}
  
  function updateArea(req, res){
     var areaId = req.params.id;
@@ -86,6 +98,7 @@ function saveArea(req, res){
 
  module.exports = {
     saveArea,
+    saveAreas,
     deleteArea,
     updateArea,
     getAreas,

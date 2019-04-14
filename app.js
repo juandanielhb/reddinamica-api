@@ -17,6 +17,7 @@ let publicationRoutes = require('./routes/publication.routes');
 let commentRoutes = require('./routes/comment.routes');
 let messageRoutes = require('./routes/message.routes');
 let resourceRoutes = require('./routes/resource.routes');
+let lessonRoutes = require('./routes/lesson.routes');
 
 // Middlewares
 app.use(bodyParser.urlencoded({extended:false}));
@@ -42,6 +43,7 @@ app.use('/api', publicationRoutes);
 app.use('/api', commentRoutes);
 app.use('/api', messageRoutes);
 app.use('/api', resourceRoutes);
+app.use('/api', lessonRoutes);
 app.use('/api', userRoutes);
 
 // Export

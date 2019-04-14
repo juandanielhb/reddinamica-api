@@ -103,63 +103,50 @@ function deleteResource(req, res) {
     });
 }
 
-// function updateCity(req, res) {
-//     var cityId = req.params.id;
-//     var updateData = req.body;
+function updateResource(req, res) {
+    var resourceId = req.params.id;
+    var updateData = req.body;
 
+    Resource.findByIdAndUpdate(resourceId, updateData, { new: true }, (err, resourceUpdated) => {
+        if (err) return res.status(500).send({ message: 'Error in the request. The resource can not be updated' });
 
-//     City.findByIdAndUpdate(cityId, updateData, { new: true }, (err, cityUpdated) => {
-//         if (err) return res.status(500).send({ message: 'Error in the request. The city can not be updated' });
+        if (!resourceUpdated) return res.status(404).send({ message: 'The resource has not been updated' });
 
-//         if (!cityUpdated) return res.status(404).send({ message: 'The city has not been updated' });
+        return res.status(200).send({ resource: resourceUpdated });
+    });
+}
 
-//         return res.status(200).send({ city: cityUpdated });
-//     });
-// }
+function getResources(req, res) {
+    var page = 1;
 
-// function getCities(req, res) {
-//     var page = 1;
+    if (req.params.page) {
+        page = req.params.page;
+    }
 
-//     if (req.params.page) {
-//         page = req.params.page;
-//     }
+    Resource.find().sort('name').paginate(page, ITEMS_PER_PAGE, (err, resources, total) => {
+        if (err) return res.status(500).send({ message: 'Error in the request. The resources were not found' });
 
-//     City.find().sort('name').paginate(page, ITEMS_PER_PAGE, (err, cities, total) => {
-//         if (err) return res.status(500).send({ message: 'Error in the request. The cities were not found' });
+        if (!resources) return res.status(404).send({ message: 'No resources were found' });
 
-//         if (!cities) return res.status(404).send({ message: 'No cities were found' });
+        return res.status(200).send({
+            resources: resources,
+            total: total,
+            pages: Math.ceil(total / ITEMS_PER_PAGE)
+        });
+    });
+}
 
-//         return res.status(200).send({
-//             cities: cities,
-//             total: total,
-//             pages: Math.ceil(total / ITEMS_PER_PAGE)
-//         });
-//     });
-// }
+function getAllResources(req, res) {
 
-// function getAllCities(req, res) {
+    Resource.find().sort('name').exec((err, resources) => {
+        if (err) return res.status(500).send({ message: 'Error in the request. The resources were not found' });
 
-//     City.find().sort('name').exec((err, cities) => {
-//         if (err) return res.status(500).send({ message: 'Error in the request. The cities were not found' });
+        if (!resources) return res.status(404).send({ message: 'No resources were found' });
 
-//         if (!cities) return res.status(404).send({ message: 'No cities were found' });
+        return res.status(200).send({ resources: resources });
 
-//         return res.status(200).send({ cities: cities });
-
-//     });
-// }
-
-// function deletecity(req, res) {
-//     var cityId = req.params.id;
-
-//     City.findOneAndRemove({ _id: cityId, used: "false" }, (err, cityRemoved) => {
-//         if (err) return res.status(500).send({ message: 'Error in the request. The city can not be removed ' });
-
-//         if (!cityRemoved) return res.status(404).send({ message: 'The city can not be removed, it has already been used or it has not been found' });
-
-//         return res.status(200).send({ city: cityRemoved });
-//     });
-// }
+    });
+}
 
 async function removeFilesOfUpdates(res, httpCode, filePath, message) {
     await fs.unlink(filePath, (err) => {
@@ -171,7 +158,10 @@ module.exports = {
     saveResource,
     uploadResourceFile,
     getResourceFile,
-    deleteResource
+    deleteResource,
+    updateResource,
+    getResources,
+    getAllResources
 }
 
 
