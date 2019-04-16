@@ -10,6 +10,7 @@ let path = require('path');
 
 // Load models
 let Resource = require('../models/resource.model');
+let Comment = require('../models/comment.model');
 
 
 function saveResource(req, res) {
@@ -24,9 +25,8 @@ function saveResource(req, res) {
     resource.justification = params.justification;
     resource.author = params.author;
     resource.accepted = params.accepted;
-    resource.created_at = moment().unix();
-    //resource.file = params.file;
-    resource.link = params.link;
+    resource.created_at = moment().unix();    
+    resource.url = params.url;
 
     resource.save((err, resourceStored) => {
         if (err) return res.status(500).send({ message: 'Error in the request. The resource can not be saved' });
@@ -70,7 +70,6 @@ function getResourceFile(req, res){
     let file = req.params.file;
     let pathFile = path.resolve(RESOURCE_PATH, file);
 
-
     fs.stat(pathFile, (err, stat) => {
 
         if (err) {
@@ -107,7 +106,7 @@ function updateResource(req, res) {
     var resourceId = req.params.id;
     var updateData = req.body;
 
-    Resource.findByIdAndUpdate(resourceId, updateData, { new: true }, (err, resourceUpdated) => {
+    Resource.findByIdAndUpdate(resourceId, updateData, {new:true}, (err, resourceUpdated) => {
         if (err) return res.status(500).send({ message: 'Error in the request. The resource can not be updated' });
 
         if (!resourceUpdated) return res.status(404).send({ message: 'The resource has not been updated' });
@@ -117,13 +116,23 @@ function updateResource(req, res) {
 }
 
 function getResources(req, res) {
-    var page = 1;
+    var page = req.params.page;
+    let findQuery = {
+        accepted: true
+    };
 
-    if (req.params.page) {
-        page = req.params.page;
+    if(req.params.visibleOnes == 'true'){
+        findQuery.visible = true;
     }
 
-    Resource.find().sort('name').paginate(page, ITEMS_PER_PAGE, (err, resources, total) => {
+    Resource.find(findQuery)
+    .sort('name')
+    .populate({
+        path: 'comments',
+        populate: { path: 'user', select: 'name surname picture _id' }
+    })
+    .populate('author', 'name surname picture _id')
+    .paginate(page, ITEMS_PER_PAGE, (err, resources, total) => {
         if (err) return res.status(500).send({ message: 'Error in the request. The resources were not found' });
 
         if (!resources) return res.status(404).send({ message: 'No resources were found' });
@@ -137,14 +146,54 @@ function getResources(req, res) {
 }
 
 function getAllResources(req, res) {
+    let order = `-${req.params.order}`;
+    let findQuery = {
+        accepted: true
+    };
 
-    Resource.find().sort('name').exec((err, resources) => {
+    if(req.params.visibleOnes == 'true'){
+        findQuery.visible = true;
+    }
+
+    if(!req.params.order){
+        order = 'name';
+    }    
+
+    Resource.find(findQuery).sort(order)
+    .populate({
+        path: 'comments',
+        populate: { path: 'user', select: 'name surname picture _id' }
+    })
+    .populate('author', 'name surname picture _id')
+    .exec((err, resources) => {
         if (err) return res.status(500).send({ message: 'Error in the request. The resources were not found' });
 
         if (!resources) return res.status(404).send({ message: 'No resources were found' });
 
         return res.status(200).send({ resources: resources });
 
+    });
+}
+
+
+// A suggest resource is the one that has "accepted" in false
+function getSuggestResources(req, res) {
+    let page = 1;
+
+    if (req.params.page) {
+        page = req.params.page;
+    }
+
+    Resource.find({accepted: false }).sort('name').paginate(page, ITEMS_PER_PAGE, (err, users, total) => {
+        if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
+
+        if (!users) return res.status(404).send({ message: 'It was not found any record' });
+
+        return res.status(200).send({
+            users,
+            total,
+            pages: Math.ceil(total / ITEMS_PER_PAGE)
+        });
     });
 }
 
@@ -161,7 +210,8 @@ module.exports = {
     deleteResource,
     updateResource,
     getResources,
-    getAllResources
+    getAllResources,
+    getSuggestResources
 }
 
 

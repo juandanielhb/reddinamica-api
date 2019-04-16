@@ -51,7 +51,7 @@ function saveUser(req, res) {
                 bcrypt.hash(params.password, null, null, (err, hash) => {
                     user.password = hash;
                     user.save((err, userStored) => {
-                        console.log(err);
+                        
                         if (err) return res.status(500).send({ message: 'Error in the request. The user can not be saved' });
 
                         if (!userStored) return res.status(404).send({ message: 'The user has not been saved' });
@@ -72,7 +72,6 @@ function saveUserByAdmin(req, res) {
     let user = new User();
 
     params.password = uuidv4().substr(0, 6);
-    console.log(params.password);
 
     if (params.name && params.surname && params.email && params.role) {
 
@@ -289,7 +288,6 @@ function deleteUser(req, res) {
     }    
 
     User.findOneAndRemove({ _id: userId }, (err, userRemoved) => {
-        console.log(err)
         if (err) return res.status(500).send({ message: 'Error in the request. The user can not be removed' });
 
         if (!userRemoved) return res.status(404).send({ message: 'The user can not be removed, it has not been found' });
@@ -503,7 +501,6 @@ async function getCountFollow(userId) {
 
 function prueba(req, res) {
 
-    console.log(process.env)
     var transporter = nodemailer.createTransport({
         service: 'gmail',
         tls: { rejectUnauthorized: false },

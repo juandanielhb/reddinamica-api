@@ -17,9 +17,12 @@ api.post('/upload-resource/:id', [auth.ensureAuth, uploadMiddleware.uploadFile(R
 api.get('/get-resource/:file', resourceController.getResourceFile);
 
 api.put('/resource/:id', [auth.ensureAuth, controlAccess.isAdmin], resourceController.updateResource);
+
 api.delete('/resource/:id', [auth.ensureAuth, controlAccess.isAdmin], resourceController.deleteResource);
 
-api.get('/resources/:page?', auth.ensureAuth, resourceController.getResources);
-api.get('/all-resources', auth.ensureAuth, resourceController.getAllResources);
+api.get('/resources/:visibleOnes/:page?', auth.ensureAuth, resourceController.getResources);
+api.get('/all-resources/:visibleOnes/:order?', auth.ensureAuth, resourceController.getAllResources);
+api.get('/suggest-resources/:page?', auth.ensureAuth, resourceController.getSuggestResources);
+
 
 module.exports = api;
