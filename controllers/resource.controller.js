@@ -184,13 +184,15 @@ function getSuggestResources(req, res) {
         page = req.params.page;
     }
 
-    Resource.find({accepted: false }).sort('name').paginate(page, ITEMS_PER_PAGE, (err, users, total) => {
+    Resource.find({accepted: false })
+    .populate('author', 'name surname picture _id')
+    .sort('name').paginate(page, ITEMS_PER_PAGE, (err, resources, total) => {
         if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
 
-        if (!users) return res.status(404).send({ message: 'It was not found any record' });
+        if (!resources) return res.status(404).send({ message: 'It was not found any record' });
 
         return res.status(200).send({
-            users,
+            resources,
             total,
             pages: Math.ceil(total / ITEMS_PER_PAGE)
         });

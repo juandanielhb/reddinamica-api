@@ -16,7 +16,7 @@ function saveComment(req, res) {
 
     comment.text = params.text;
     comment.user = params.user;
-    comment.rating = 0;
+    comment.score = params.score;
     comment.created_at = moment().unix();
     
     comment.save((err, commentStored) => {
