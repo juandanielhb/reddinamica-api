@@ -16,7 +16,9 @@ api.post('/lesson', auth.ensureAuth, lessonController.saveLesson);
 api.delete('/lesson/:id', auth.ensureAuth, lessonController.deleteLesson);
 api.get('/lessons/:page?', auth.ensureAuth, lessonController.getLessons);
 api.get('/all-lessons', auth.ensureAuth, lessonController.getAllLessons);
-api.put('/lesson/:id', [auth.ensureAuth, controlAccess.isAdmin], lessonController.updateLesson);
+api.get('/suggest-lessons/:page?', auth.ensureAuth, lessonController.getSuggestLessons);
+api.get('/experiences/:page?', auth.ensureAuth, lessonController.getExperiences);
+api.put('/lesson/:id', auth.ensureAuth, lessonController.updateLesson);
 
 // api.get('/user-lessons/:id/:page?', auth.ensureAuth, lessonController.getUserlessons);
 // api.get('/lesson/:id', auth.ensureAuth, lessonController.getlesson);

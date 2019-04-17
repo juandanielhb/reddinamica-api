@@ -10,6 +10,7 @@ let path = require('path');
 
 // Load models
 let Lesson = require('../models/lesson.model');
+let Comment = require('../models/comment.model');
 
 
 function saveLesson(req, res) {
@@ -20,7 +21,7 @@ function saveLesson(req, res) {
     lesson.title = params.title;
     lesson.resume = params.resume; 
     lesson.references = params.references;
-    lesson.level = params.level;
+    lesson.development_level = params.development_level;
     lesson.type = params.type;
     lesson.knowledge_area = params.knowledge_area;
     lesson.author = params.author;
@@ -89,7 +90,7 @@ function saveLesson(req, res) {
 function deleteLesson(req, res) {
     let lessonId = req.params.id;
 
-    lesson.findByIdAndRemove({ user: req.user.sub, '_id': lessonId }, (err, lessonRemoved) => {
+    Lesson.findByIdAndRemove({ user: req.user.sub, '_id': lessonId }, (err, lessonRemoved) => {
         if (err) return res.status(500).send({ message: 'Error in the request. It can not be removed the lesson' });
 
         if (!lessonRemoved) return res.status(404).send({ message: 'The lesson has not been removed' });
@@ -110,7 +111,7 @@ function updateLesson(req, res) {
     var updateData = req.body;
 
 
-    lesson.findByIdAndUpdate(lessonId, updateData, { new: true }, (err, lessonUpdated) => {
+    Lesson.findByIdAndUpdate(lessonId, updateData, { new: true }, (err, lessonUpdated) => {
         if (err) return res.status(500).send({ message: 'Error in the request. The lesson can not be updated' });
 
         if (!lessonUpdated) return res.status(404).send({ message: 'The lesson has not been updated' });
@@ -151,6 +152,53 @@ function getAllLessons(req, res) {
     });
 }
 
+// A suggest lesson is the one that has "accepted" in false and has a justification
+function getSuggestLessons(req, res) {
+    let page = 1;
+
+    if (req.params.page) {
+        page = req.params.page;
+    }
+
+    Lesson.find({justification: {$ne:null}, accepted:false})
+    .populate('author', 'name surname picture _id')
+    .sort('name').paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
+        if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
+
+        if (!lessons) return res.status(404).send({ message: 'It was not found any record' });
+
+        return res.status(200).send({
+            lessons,
+            total,
+            pages: Math.ceil(total / ITEMS_PER_PAGE)
+        });
+    });
+}
+
+// A experience-lesson is the one that has "accepted" in false and has type and development_level
+function getExperiences(req, res) {
+    let page = 1;
+
+    if (req.params.page) {
+        page = req.params.page;
+    }
+    
+    Lesson.find({development_level:{$ne:null}, type:{$ne:null}, accepted: false})
+    .populate('author', 'name surname picture _id')
+    .populate('knowledge_area', 'name')
+    .sort('name').paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
+        if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
+
+        if (!lessons) return res.status(404).send({ message: 'It was not found any record' });
+
+        return res.status(200).send({
+            lessons,
+            total,
+            pages: Math.ceil(total / ITEMS_PER_PAGE)
+        });
+    });
+}
+
 async function removeFilesOfUpdates(res, httpCode, filePath, message) {
     await fs.unlink(filePath, (err) => {
         return res.status(httpCode).send({ message: message })
@@ -162,7 +210,9 @@ module.exports = {
     deleteLesson,
     updateLesson,
     getLessons,
-    getAllLessons
+    getAllLessons,
+    getSuggestLessons,
+    getExperiences
     // uploadLessonFile,
     // getLessonFile,
     
