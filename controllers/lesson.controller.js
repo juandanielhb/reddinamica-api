@@ -19,7 +19,7 @@ function saveLesson(req, res) {
     let lesson = new Lesson();
 
     lesson.title = params.title;
-    lesson.resume = params.resume; 
+    lesson.resume = params.resume;
     lesson.references = params.references;
     lesson.development_level = params.development_level;
     lesson.type = params.type;
@@ -28,8 +28,8 @@ function saveLesson(req, res) {
     lesson.accepted = params.accepted;
     lesson.justification = params.justification;
     lesson.state = params.state;
-    
-    lesson.created_at = moment().unix();    
+
+    lesson.created_at = moment().unix();
 
     lesson.save((err, lessonStored) => {
         if (err) return res.status(500).send({ message: 'Error in the request. The lesson can not be saved' });
@@ -61,7 +61,7 @@ function saveLesson(req, res) {
 //                 });
 
 //             } else {
-//                 return removeFilesOfUpdates(res, 403, filePath, 'You do not have permission to update user data');
+//                 return removeFilesOfUpdates(res, 403, filePath, 'You do not have permission to update lesson data');
 //             }
 //         });
 //     } else {
@@ -95,8 +95,8 @@ function deleteLesson(req, res) {
 
         if (!lessonRemoved) return res.status(404).send({ message: 'The lesson has not been removed' });
 
-        Comment.remove({'_id':{'$in': lessonRemoved.comments}}, (err)=> {
-            if(err){
+        Comment.remove({ '_id': { '$in': lessonRemoved.comments } }, (err) => {
+            if (err) {
                 return res.status(500).send({ message: 'Error in the request. It can not be removed the lesson comments' });
             }
 
@@ -110,7 +110,6 @@ function updateLesson(req, res) {
     var lessonId = req.params.id;
     var updateData = req.body;
 
-
     Lesson.findByIdAndUpdate(lessonId, updateData, { new: true }, (err, lessonUpdated) => {
         if (err) return res.status(500).send({ message: 'Error in the request. The lesson can not be updated' });
 
@@ -120,36 +119,76 @@ function updateLesson(req, res) {
     });
 }
 
-function getLessons(req, res) {
-    var page = 1;
+function getLesson(req, res){
+    let lessonId = req.params.id;
 
-    if (req.params.page) {
-        page = req.params.page;
+    Lesson.findById(lessonId)
+        .exec((err, lesson) => {
+            if (err) return res.status(500).send({ message: 'Error in the request. lesson can not be found' });
+
+            if (!lesson) return res.status(404).send({ message: 'lesson doesn\'t exist' });
+
+            return res.status(200).send({ lesson });
+
+        });
+}
+
+function getLessons(req, res) {
+    var page = req.params.page;
+
+    let findQuery = {
+        accepted: true
+    };
+
+    if (req.params.visibleOnes == 'true') {
+        findQuery.visible = true;
     }
 
-    Lesson.find().sort('name').paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
-        if (err) return res.status(500).send({ message: 'Error in the request. The lessons were not found' });
+    Lesson.find(findQuery)
+        .sort('name')
+        .populate('development_group', 'name surname picture _id')
+        .populate('author', 'name surname picture _id')
+        .populate('knowledge_area', 'name')
+        .paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
+            if (err) return res.status(500).send({ message: 'Error in the request. The lessons were not found' });
 
-        if (!lessons) return res.status(404).send({ message: 'No lessons were found' });
+            if (!lessons) return res.status(404).send({ message: 'No lessons were found' });
 
-        return res.status(200).send({
-            lessons: lessons,
-            total: total,
-            pages: Math.ceil(total / ITEMS_PER_PAGE)
+            return res.status(200).send({
+                lessons: lessons,
+                total: total,
+                pages: Math.ceil(total / ITEMS_PER_PAGE)
+            });
         });
-    });
 }
 
 function getAllLessons(req, res) {
+    let order = `-${req.params.order}`;
 
-    Lesson.find().sort('name').exec((err, lessons) => {
-        if (err) return res.status(500).send({ message: 'Error in the request. The lessons were not found' });
+    let findQuery = {
+        accepted: true
+    };
 
-        if (!lessons) return res.status(404).send({ message: 'No lessons were found' });
+    if (req.params.visibleOnes == 'true') {
+        findQuery.visible = true;
+    }
 
-        return res.status(200).send({ lessons: lessons });
+    if (!req.params.order) {
+        order = 'title';
+    }
 
-    });
+    Lesson.find(findQuery).sort(order)
+        .populate('development_group', 'name surname picture _id')
+        .populate('author', 'name surname picture _id')
+        .populate('knowledge_area', 'name')
+        .exec((err, lessons) => {
+            if (err) return res.status(500).send({ message: 'Error in the request. The lessons were not found' });
+
+            if (!lessons) return res.status(404).send({ message: 'No lessons were found' });
+
+            return res.status(200).send({ lessons: lessons });
+
+        });
 }
 
 // A suggest lesson is the one that has "accepted" in false and has a justification
@@ -160,19 +199,19 @@ function getSuggestLessons(req, res) {
         page = req.params.page;
     }
 
-    Lesson.find({justification: {$ne:null}, accepted:false})
-    .populate('author', 'name surname picture _id')
-    .sort('name').paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
-        if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
+    Lesson.find({ justification: { $ne: null }, accepted: false })
+        .populate('author', 'name surname picture _id')
+        .sort('name').paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
+            if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
 
-        if (!lessons) return res.status(404).send({ message: 'It was not found any record' });
+            if (!lessons) return res.status(404).send({ message: 'It was not found any record' });
 
-        return res.status(200).send({
-            lessons,
-            total,
-            pages: Math.ceil(total / ITEMS_PER_PAGE)
+            return res.status(200).send({
+                lessons,
+                total,
+                pages: Math.ceil(total / ITEMS_PER_PAGE)
+            });
         });
-    });
 }
 
 // A experience-lesson is the one that has "accepted" in false and has type and development_level
@@ -182,21 +221,21 @@ function getExperiences(req, res) {
     if (req.params.page) {
         page = req.params.page;
     }
-    
-    Lesson.find({development_level:{$ne:null}, type:{$ne:null}, accepted: false})
-    .populate('author', 'name surname picture _id')
-    .populate('knowledge_area', 'name')
-    .sort('name').paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
-        if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
 
-        if (!lessons) return res.status(404).send({ message: 'It was not found any record' });
+    Lesson.find({ development_level: { $ne: null }, type: { $ne: null }, accepted: false })
+        .populate('author', 'name surname picture _id')
+        .populate('knowledge_area', 'name')
+        .sort('name').paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
+            if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
 
-        return res.status(200).send({
-            lessons,
-            total,
-            pages: Math.ceil(total / ITEMS_PER_PAGE)
+            if (!lessons) return res.status(404).send({ message: 'It was not found any record' });
+
+            return res.status(200).send({
+                lessons,
+                total,
+                pages: Math.ceil(total / ITEMS_PER_PAGE)
+            });
         });
-    });
 }
 
 async function removeFilesOfUpdates(res, httpCode, filePath, message) {
@@ -210,12 +249,13 @@ module.exports = {
     deleteLesson,
     updateLesson,
     getLessons,
+    getLesson,
     getAllLessons,
     getSuggestLessons,
     getExperiences
     // uploadLessonFile,
     // getLessonFile,
-    
+
 }
 
 

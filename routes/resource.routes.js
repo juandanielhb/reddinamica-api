@@ -22,6 +22,7 @@ api.delete('/resource/:id', [auth.ensureAuth, controlAccess.isAdmin], resourceCo
 
 api.get('/resources/:visibleOnes/:page?', auth.ensureAuth, resourceController.getResources);
 api.get('/all-resources/:visibleOnes/:order?', auth.ensureAuth, resourceController.getAllResources);
+
 api.get('/suggest-resources/:page?', auth.ensureAuth, resourceController.getSuggestResources);
 
 

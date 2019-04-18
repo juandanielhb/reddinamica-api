@@ -22,13 +22,13 @@ var lessonSchema = schema({
     visible:{type:Boolean, default: false},
     accepted:{type:Boolean, default: false},
     knowledge_area:[{type: schema.ObjectId, ref: 'Knowledge-area'},],    
-    views:Number,
+    views:{type: Number, default:0},
     score:{type: Number, default:0},
     entries:[{type: schema.ObjectId, ref: 'Entry'}],
     comments:[{type: schema.ObjectId, ref: 'Comment'}],
     files:[{type: schema.ObjectId, ref: 'File'}], //rEVISAR COMO PONERLO    
     father_lesson:{type: schema.ObjectId, ref: 'Lesson'},
-    version:{type: Number, default:1}
+    version:[{type: Map, of: String}]
 });
 
 module.exports = mongoose.model('Lesson', lessonSchema);
