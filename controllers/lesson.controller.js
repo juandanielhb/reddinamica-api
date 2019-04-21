@@ -110,7 +110,13 @@ function updateLesson(req, res) {
     var lessonId = req.params.id;
     var updateData = req.body;
 
-    Lesson.findByIdAndUpdate(lessonId, updateData, { new: true }, (err, lessonUpdated) => {
+    Lesson.findByIdAndUpdate(lessonId, updateData, { new: true })
+    .populate('development_group', 'name surname picture role _id')
+    .populate('author', 'name surname picture role _id')
+    .populate('expert', 'name surname picture role _id')
+    .populate('leader', 'name surname picture role _id')
+    .populate('call.interested', 'name surname role picture _id')
+    .exec((err, lessonUpdated) => {
         if (err) return res.status(500).send({ message: 'Error in the request. The lesson can not be updated' });
 
         if (!lessonUpdated) return res.status(404).send({ message: 'The lesson has not been updated' });
@@ -119,7 +125,7 @@ function updateLesson(req, res) {
     });
 }
 
-function getLesson(req, res){
+function getLesson(req, res) {
     let lessonId = req.params.id;
 
     Lesson.findById(lessonId)
@@ -144,12 +150,18 @@ function getLessons(req, res) {
         findQuery.visible = true;
     }
 
+
     Lesson.find(findQuery)
         .sort('name')
-        .populate('development_group', 'name surname picture _id')
-        .populate('author', 'name surname picture _id')
+        .populate('development_group', 'name surname picture role _id')
+        .populate('author', 'name surname picture role _id')
+        .populate('expert', 'name surname picture role _id')
+        .populate('leader', 'name surname picture role _id')
         .populate('knowledge_area', 'name')
+        .populate('call.interested', 'name surname role picture _id')
         .paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
+
+
             if (err) return res.status(500).send({ message: 'Error in the request. The lessons were not found' });
 
             if (!lessons) return res.status(404).send({ message: 'No lessons were found' });
@@ -178,10 +190,14 @@ function getAllLessons(req, res) {
     }
 
     Lesson.find(findQuery).sort(order)
-        .populate('development_group', 'name surname picture _id')
-        .populate('author', 'name surname picture _id')
+        .populate('development_group', 'name surname picture role _id')
+        .populate('author', 'name surname picture role _id')
+        .populate('expert', 'name surname picture role _id')
+        .populate('leader', 'name surname picture role _id')
         .populate('knowledge_area', 'name')
+        .populate('call.interested', 'name surname role picture _id')
         .exec((err, lessons) => {
+
             if (err) return res.status(500).send({ message: 'Error in the request. The lessons were not found' });
 
             if (!lessons) return res.status(404).send({ message: 'No lessons were found' });
@@ -200,7 +216,7 @@ function getSuggestLessons(req, res) {
     }
 
     Lesson.find({ justification: { $ne: null }, accepted: false })
-        .populate('author', 'name surname picture _id')
+        .populate('author', 'name surname picture role _id')
         .sort('name').paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
             if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
 
@@ -223,7 +239,7 @@ function getExperiences(req, res) {
     }
 
     Lesson.find({ development_level: { $ne: null }, type: { $ne: null }, accepted: false })
-        .populate('author', 'name surname picture _id')
+        .populate('author', 'name surname picture role _id')
         .populate('knowledge_area', 'name')
         .sort('name').paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
             if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
@@ -244,6 +260,44 @@ async function removeFilesOfUpdates(res, httpCode, filePath, message) {
     });
 }
 
+
+function getCalls(req, res) {
+    let page = 1;
+
+    if (req.params.page) {
+        page = req.params.page;
+    }
+
+    Lesson.find({ "call.visible": true })
+    .populate('call.interested', 'name surname role picture _id')
+    .populate('knowledge_area', 'name')
+    .paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
+            if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
+
+            if (!lessons) return res.status(404).send({ message: 'It was not found any record' });
+
+            return res.status(200).send({
+                lessons,
+                total: total,
+                pages: Math.ceil(total / ITEMS_PER_PAGE)
+            });
+        });
+}
+
+function getAllCalls(req, res) {
+
+    Lesson.find({ "call.visible": true })
+    .populate('call.interested', 'name surname role picture _id')
+    .populate('knowledge_area', 'name')
+    .exec((err, lessons) => {
+            if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
+
+            if (!lessons) return res.status(404).send({ message: 'It was not found any record' });
+
+            return res.status(200).send({lessons});
+        });
+}
+
 module.exports = {
     saveLesson,
     deleteLesson,
@@ -252,6 +306,8 @@ module.exports = {
     getLesson,
     getAllLessons,
     getSuggestLessons,
+    getCalls,
+    getAllCalls,
     getExperiences
     // uploadLessonFile,
     // getLessonFile,

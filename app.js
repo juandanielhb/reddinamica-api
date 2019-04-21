@@ -7,7 +7,6 @@ let bodyParser = require('body-parser');
 let app = express();
 
 // Load routes
-let userRoutes = require('./routes/user.routes');
 let institutionRoutes = require('./routes/institution.routes');
 let cityRoutes = require('./routes/city.routes');
 let knowledgeAreaRoutes = require('./routes/knowledgeArea.routes');
@@ -18,6 +17,8 @@ let commentRoutes = require('./routes/comment.routes');
 let messageRoutes = require('./routes/message.routes');
 let resourceRoutes = require('./routes/resource.routes');
 let lessonRoutes = require('./routes/lesson.routes');
+let callRoutes = require('./routes/lesson-call.routes');
+let userRoutes = require('./routes/user.routes');
 
 // Middlewares
 app.use(bodyParser.urlencoded({extended:false}));
@@ -44,6 +45,7 @@ app.use('/api', commentRoutes);
 app.use('/api', messageRoutes);
 app.use('/api', resourceRoutes);
 app.use('/api', lessonRoutes);
+app.use('/api', callRoutes);
 app.use('/api', userRoutes);
 
 // Export

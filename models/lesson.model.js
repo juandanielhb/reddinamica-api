@@ -3,9 +3,18 @@
 var mongoose = require('mongoose');
 var schema = mongoose.Schema;
 
+
+var call = schema({
+    text:String,
+    visible:{type:Boolean, default: false},
+    author:{type: schema.ObjectId, ref: 'User'},
+    interested:[{type: schema.ObjectId, ref:'User'}]
+});
+
+
 var lessonSchema = schema({
     title:String,
-    objectives:String,
+    objectives:[String],
     resume:String,
     references:String,
     justification:String,
@@ -13,6 +22,7 @@ var lessonSchema = schema({
     level:String,
     state:String,
     type:String,
+    call:call,
     expert:{type: schema.ObjectId, ref: 'User'},
     author:{type: schema.ObjectId, ref: 'User'},
     leader:{type: schema.ObjectId, ref: 'User'},
@@ -28,7 +38,8 @@ var lessonSchema = schema({
     comments:[{type: schema.ObjectId, ref: 'Comment'}],
     files:[{type: schema.ObjectId, ref: 'File'}], //rEVISAR COMO PONERLO    
     father_lesson:{type: schema.ObjectId, ref: 'Lesson'},
-    version:[{type: Map, of: String}]
+    son_lesson:{type: schema.ObjectId, ref: 'Lesson'},
+    version:{type: Number, default:1}
 });
 
 module.exports = mongoose.model('Lesson', lessonSchema);

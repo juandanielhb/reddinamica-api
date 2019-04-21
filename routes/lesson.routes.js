@@ -27,9 +27,7 @@ api.get('/all-lessons/:visibleOnes/:order?', auth.ensureAuth, lessonController.g
 
 api.get('/suggest-lessons/:page?', auth.ensureAuth, lessonController.getSuggestLessons);
 api.get('/experiences/:page?', auth.ensureAuth, lessonController.getExperiences);
-
-// api.get('/user-lessons/:id/:page?', auth.ensureAuth, lessonController.getUserlessons);
-// api.get('/lesson/:id', auth.ensureAuth, lessonController.getlesson);
-
+api.get('/calls/:page?', lessonController.getCalls);
+api.get('/all-calls', lessonController.getCalls);
 
 module.exports = api;
