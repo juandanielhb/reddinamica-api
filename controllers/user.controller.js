@@ -96,9 +96,10 @@ function saveUserByAdmin(req, res) {
             if (users && users.length >= 1) {
                 return res.status(200).send({ message: 'User already exists' });
             } else {
-
+                console.log(params.password)
                 bcrypt.hash(params.password, null, null, (err, hash) => {
                     user.password = hash;
+                    
                     user.save((err, userStored) => {
                         
                         if (err) return res.status(500).send({ message: 'Error in the request. The user can not be saved' });
@@ -237,7 +238,11 @@ function getNewUsers(req, res) {
         page = req.params.page;
     }
 
-    User.find({ actived: false }).sort('name').paginate(page, ITEMS_PER_PAGE, (err, users, total) => {
+    User.find({ actived: false }).sort('name')
+    .populate('city')
+    .populate('profession')
+    .populate('institution')
+    .paginate(page, ITEMS_PER_PAGE, (err, users, total) => {
         if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
 
         if (!users) return res.status(404).send({ message: 'It was not found any user' });
