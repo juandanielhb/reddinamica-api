@@ -111,24 +111,29 @@ function updateLesson(req, res) {
     var updateData = req.body;
 
     Lesson.findByIdAndUpdate(lessonId, updateData, { new: true })
-    .populate('development_group', 'name surname picture role _id')
-    .populate('author', 'name surname picture role _id')
-    .populate('expert', 'name surname picture role _id')
-    .populate('leader', 'name surname picture role _id')
-    .populate('call.interested', 'name surname role picture _id')
-    .exec((err, lessonUpdated) => {
-        if (err) return res.status(500).send({ message: 'Error in the request. The lesson can not be updated' });
+        .populate('development_group', 'name surname picture role _id')
+        .populate('author', 'name surname picture role _id')
+        .populate('expert', 'name surname picture role _id')
+        .populate('leader', 'name surname picture role _id')
+        .populate('call.interested', 'name surname role picture _id')
+        .exec((err, lessonUpdated) => {
+            if (err) return res.status(500).send({ message: 'Error in the request. The lesson can not be updated' });
 
-        if (!lessonUpdated) return res.status(404).send({ message: 'The lesson has not been updated' });
+            if (!lessonUpdated) return res.status(404).send({ message: 'The lesson has not been updated' });
 
-        return res.status(200).send({ lesson: lessonUpdated });
-    });
+            return res.status(200).send({ lesson: lessonUpdated });
+        });
 }
 
 function getLesson(req, res) {
     let lessonId = req.params.id;
 
     Lesson.findById(lessonId)
+        .populate('development_group', 'name surname picture role _id')
+        .populate('author', 'name surname picture role _id')
+        .populate('expert', 'name surname picture role _id')
+        .populate('leader', 'name surname picture role _id')
+        .populate('knowledge_area', 'name')
         .exec((err, lesson) => {
             if (err) return res.status(500).send({ message: 'Error in the request. lesson can not be found' });
 
@@ -269,9 +274,9 @@ function getCalls(req, res) {
     }
 
     Lesson.find({ "call.visible": true })
-    .populate('call.interested', 'name surname role picture _id')
-    .populate('knowledge_area', 'name')
-    .paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
+        .populate('call.interested', 'name surname role picture _id')
+        .populate('knowledge_area', 'name')
+        .paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
             if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
 
             if (!lessons) return res.status(404).send({ message: 'It was not found any record' });
@@ -287,14 +292,14 @@ function getCalls(req, res) {
 function getAllCalls(req, res) {
 
     Lesson.find({ "call.visible": true })
-    .populate('call.interested', 'name surname role picture _id')
-    .populate('knowledge_area', 'name')
-    .exec((err, lessons) => {
+        .populate('call.interested', 'name surname role picture _id')
+        .populate('knowledge_area', 'name')
+        .exec((err, lessons) => {
             if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
 
             if (!lessons) return res.status(404).send({ message: 'It was not found any record' });
 
-            return res.status(200).send({lessons});
+            return res.status(200).send({ lessons });
         });
 }
 
