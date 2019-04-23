@@ -17,7 +17,6 @@ let commentRoutes = require('./routes/comment.routes');
 let messageRoutes = require('./routes/message.routes');
 let resourceRoutes = require('./routes/resource.routes');
 let lessonRoutes = require('./routes/lesson.routes');
-let callRoutes = require('./routes/lesson-call.routes');
 let userRoutes = require('./routes/user.routes');
 
 // Middlewares
@@ -45,7 +44,6 @@ app.use('/api', commentRoutes);
 app.use('/api', messageRoutes);
 app.use('/api', resourceRoutes);
 app.use('/api', lessonRoutes);
-app.use('/api', callRoutes);
 app.use('/api', userRoutes);
 
 // Export
