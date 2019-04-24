@@ -40,52 +40,30 @@ function saveLesson(req, res) {
     });
 }
 
-// function uploadLessonFile(req, res){
-//     let lessonId = req.params.id;
-//     let filePath = req.file.path;
-//     let filename = req.file.filename;
+function uploadLessonFiles(req, res){
 
-//     if (req.file) {
+    if (req.files) {
+        return res.status(200).send({ message: 'The files were uploaded correctly' });
+    }
+}
 
-//         lesson.findOne({'_id': lessonId }, (err, lesson) => {
-
-//             if (lesson) {
-
-//                 lesson.findByIdAndUpdate(lessonId, { file: filename }, { new: true }, (err, lessonUpdated) => {
-
-//                     if (err) return removeFilesOfUpdates(res, 500, filePath, 'Error in the request. The lesson can not be upadated');
-
-//                     if (!lessonUpdated) return removeFilesOfUpdates(res, 404, filePath, 'The lesson has not been updated');
-
-//                     return res.status(200).send({ lesson: lessonUpdated });
-//                 });
-
-//             } else {
-//                 return removeFilesOfUpdates(res, 403, filePath, 'You do not have permission to update lesson data');
-//             }
-//         });
-//     } else {
-//         return res.status(200).send({ message: 'No file has been uploaded' })
-//     }
-// }
-
-// function getLessonFile(req, res){
-//     let file = req.params.file;
-//     let pathFile = path.resolve(LESSON_PATH, file);
+function getLessonFile(req, res){
+    let file = req.params.file;
+    let pathFile = path.resolve(LESSON_PATH, file);
 
 
-//     fs.stat(pathFile, (err, stat) => {
+    fs.stat(pathFile, (err, stat) => {
 
-//         if (err) {
-//             if (err.code === 'ENOENT') {
-//                 return res.status(200).send({ message: 'The file does not exits' });
-//             } else { // en caso de otro error
-//                 return res.status(500).send({ message: 'Error requesting the file.' });
-//             }
-//         }
-//         return res.sendFile(pathFile);
-//     });
-// }
+        if (err) {
+            if (err.code === 'ENOENT') {
+                return res.status(200).send({ message: 'The file does not exits' });
+            } else { // en caso de otro error
+                return res.status(500).send({ message: 'Error requesting the file.' });
+            }
+        }
+        return res.sendFile(pathFile);
+    });
+}
 
 function deleteLesson(req, res) {
     let lessonId = req.params.id;
@@ -313,10 +291,9 @@ module.exports = {
     getSuggestLessons,
     getCalls,
     getAllCalls,
-    getExperiences
-    // uploadLessonFile,
-    // getLessonFile,
-
+    getExperiences,
+    uploadLessonFiles,
+    getLessonFile
 }
 
 

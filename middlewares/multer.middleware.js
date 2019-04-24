@@ -90,7 +90,7 @@ let uploadFiles = (targetPath) => {
     dest: path.join(__dirname, targetPath),
     fileFilter: (req, file, cb) => {
       // Allowed extension files 
-      const filetypes = /pdf|doc|txt|ppt|xls|avi|mpeg|mp4|mp3|jpeg|jpg|png|gif|svg/;
+      const filetypes = /pdf|doc|txt|ppt|xls|avi|mpeg|mp4|mp3|jpeg|jpg|png|gif|svg|exe|rar|zip/;
       const mimetype = filetypes.test(file.mimetype);
       const ext = path.extname(file.originalname.toLowerCase());
       const extTest = filetypes.test(ext);
@@ -104,7 +104,7 @@ let uploadFiles = (targetPath) => {
     limits: {
       fileSize: FILES_SIZE_MB * 1000000
     },
-  }).array('file', 5);
+  }).array('files', 10);
 
 }
 

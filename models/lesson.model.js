@@ -1,18 +1,33 @@
 'use strict'
 
-var mongoose = require('mongoose');
-var schema = mongoose.Schema;
+let mongoose = require('mongoose');
+let schema = mongoose.Schema;
 
-
-var call = schema({
+let call = schema({
     text:String,
     visible:{type:Boolean, default: false},
     author:{type: schema.ObjectId, ref: 'User'},
     interested:[{type: schema.ObjectId, ref:'User'}]
 });
 
+let file = schema({
+    originalName:String,
+    mimetype:String,
+    size:Number,
+    fileName:String,
+    groupTitle:String,
+    created_at:String    
+});
 
-var lessonSchema = schema({
+let message = schema({
+    text:String,
+    author:{type: schema.ObjectId, ref: 'User'},
+    file:file,
+    conversationTitle:String,    
+    created_at:String    
+});
+
+let lessonSchema = schema({
     title:String,
     objectives:[String],
     resume:String,
@@ -34,9 +49,10 @@ var lessonSchema = schema({
     knowledge_area:[{type: schema.ObjectId, ref: 'Knowledge-area'},],    
     views:{type: Number, default:0},
     score:{type: Number, default:0},
-    entries:[{type: schema.ObjectId, ref: 'Entry'}],
+    conversations:[message],
+    expert_comments:[message],
     comments:[{type: schema.ObjectId, ref: 'Comment'}],
-    files:[{type: schema.ObjectId, ref: 'File'}], //rEVISAR COMO PONERLO    
+    files:[file], 
     father_lesson:{type: schema.ObjectId, ref: 'Lesson'},
     son_lesson:{type: schema.ObjectId, ref: 'Lesson'},
     version:{type: Number, default:1}

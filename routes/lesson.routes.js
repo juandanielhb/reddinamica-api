@@ -14,8 +14,8 @@ const LESSON_PATH = '../uploads/lessons/';
 
 api.post('/lesson', auth.ensureAuth, lessonController.saveLesson);
 
-// api.post('/upload-lesson/:id', [auth.ensureAuth, uploadMiddleware.uploadFile(lesson_PATH)],lessonController.uploadlessonFile);
-// api.get('/get-lesson/:file', lessonController.getlessonFile);
+api.post('/upload-lesson/:id', [auth.ensureAuth, uploadMiddleware.uploadFiles(LESSON_PATH)],lessonController.uploadLessonFiles);
+api.get('/get-lesson/:file', lessonController.getLessonFile);
 
 api.put('/lesson/:id', auth.ensureAuth, lessonController.updateLesson);
 
