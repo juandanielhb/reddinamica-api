@@ -24,6 +24,9 @@ api.delete('/lesson/:id', auth.ensureAuth, lessonController.deleteLesson);
 api.get('/lesson/:id', auth.ensureAuth , lessonController.getLesson);
 api.get('/lessons/:visibleOnes/:page?', auth.ensureAuth, lessonController.getLessons);
 api.get('/all-lessons/:visibleOnes/:order?', auth.ensureAuth, lessonController.getAllLessons);
+api.get('/my-lessons/:page?', auth.ensureAuth, lessonController.getMyLessons);
+api.get('/all-my-lessons', auth.ensureAuth, lessonController.getAllMyLessons);
+api.get('/lessons-to-advise', auth.ensureAuth, lessonController.getLessonsToAdvise);
 
 api.get('/suggest-lessons/:page?', auth.ensureAuth, lessonController.getSuggestLessons);
 api.get('/experiences/:page?', auth.ensureAuth, lessonController.getExperiences);

@@ -94,6 +94,12 @@ function updateLesson(req, res) {
         .populate('expert', 'name surname picture role _id')
         .populate('leader', 'name surname picture role _id')
         .populate('call.interested', 'name surname role picture _id')
+        .populate('conversations.author', 'name surname picture role _id')
+        .populate('expert_comments.author', 'name surname picture role _id')
+        .populate({
+            path: 'comments',
+            populate: { path: 'user', select: 'name surname picture _id' }
+        })
         .exec((err, lessonUpdated) => {
             if (err) return res.status(500).send({ message: 'Error in the request. The lesson can not be updated' });
 
@@ -112,6 +118,12 @@ function getLesson(req, res) {
         .populate('expert', 'name surname picture role _id')
         .populate('leader', 'name surname picture role _id')
         .populate('knowledge_area', 'name')
+        .populate('conversations.author', 'name surname picture role _id')        
+        .populate('expert_comments.author', 'name surname picture role _id')
+        .populate({
+            path: 'comments',
+            populate: { path: 'user', select: 'name surname picture _id' }
+        })
         .exec((err, lesson) => {
             if (err) return res.status(500).send({ message: 'Error in the request. lesson can not be found' });
 
@@ -187,6 +199,66 @@ function getAllLessons(req, res) {
 
             return res.status(200).send({ lessons: lessons });
 
+        });
+}
+
+function getMyLessons(req, res) {
+    let page = req.params.page;
+    let userId = req.user.sub;
+    
+    Lesson.find({$or:[
+        {"author":userId},
+        {"development_group":{ $all: userId }}
+        ]})
+        .sort('name')        
+        .populate('knowledge_area', 'name')
+        .paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
+            if (err) return res.status(500).send({ message: 'Error in the request. The lessons were not found' });
+
+            if (!lessons) return res.status(404).send({ message: 'No lessons were found' });
+
+            return res.status(200).send({
+                lessons: lessons,
+                total: total,
+                pages: Math.ceil(total / ITEMS_PER_PAGE)
+            });
+        });
+}
+
+function getAllMyLessons(req, res) {
+    let userId = req.user.sub;
+    
+    Lesson.find({$or:[
+        {"author":userId},
+        {"development_group":{ $all: userId }}
+        ]})
+        .sort('name')        
+        .populate('knowledge_area', 'name')
+        .exec((err, lessons) => {
+            if (err) return res.status(500).send({ message: 'Error in the request. The lessons were not found' });
+
+            if (!lessons) return res.status(404).send({ message: 'No lessons were found' });
+
+            return res.status(200).send({
+                lessons: lessons
+            });
+        });
+}
+
+function getLessonsToAdvise(req, res) {
+    let userId = req.user.sub;
+    
+    Lesson.find({"expert":userId})
+        .sort('name')        
+        .populate('knowledge_area', 'name')
+        .exec((err, lessons) => {
+            if (err) return res.status(500).send({ message: 'Error in the request. The lessons were not found' });
+
+            if (!lessons) return res.status(404).send({ message: 'No lessons were found' });
+
+            return res.status(200).send({
+                lessons: lessons
+            });
         });
 }
 
@@ -288,6 +360,9 @@ module.exports = {
     getLessons,
     getLesson,
     getAllLessons,
+    getMyLessons,
+    getAllMyLessons,
+    getLessonsToAdvise,
     getSuggestLessons,
     getCalls,
     getAllCalls,

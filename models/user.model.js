@@ -10,6 +10,7 @@ var userSchema = schema({
     email:{type:String,unique:true},
     about:String,
     role:String,
+    canAdvise:{type:Boolean, default:false},
     actived:{type:Boolean, default:false},
     postgraduate:String,
     picture: {type:String, default:'user-default.png'},
