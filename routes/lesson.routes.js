@@ -26,7 +26,8 @@ api.get('/lessons/:visibleOnes/:page?', auth.ensureAuth, lessonController.getLes
 api.get('/all-lessons/:visibleOnes/:order?', auth.ensureAuth, lessonController.getAllLessons);
 api.get('/my-lessons/:page?', auth.ensureAuth, lessonController.getMyLessons);
 api.get('/all-my-lessons', auth.ensureAuth, lessonController.getAllMyLessons);
-api.get('/lessons-to-advise', auth.ensureAuth, lessonController.getLessonsToAdvise);
+api.get('/lessons-to-advise/:page?', auth.ensureAuth, lessonController.getLessonsToAdvise);
+api.get('/all-lessons-to-advise', auth.ensureAuth, lessonController.getAllLessonsToAdvise);
 
 api.get('/suggest-lessons/:page?', auth.ensureAuth, lessonController.getSuggestLessons);
 api.get('/experiences/:page?', auth.ensureAuth, lessonController.getExperiences);

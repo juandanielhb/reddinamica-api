@@ -29,7 +29,6 @@ let message = schema({
 
 let lessonSchema = schema({
     title:String,
-    objectives:[String],
     resume:String,
     references:String,
     justification:String,
@@ -43,7 +42,6 @@ let lessonSchema = schema({
     leader:{type: schema.ObjectId, ref: 'User'},
     development_group:[{type: schema.ObjectId, ref: 'User'}],
     created_at:String,
-    published_at:String,
     visible:{type:Boolean, default: false},
     accepted:{type:Boolean, default: false},
     knowledge_area:[{type: schema.ObjectId, ref: 'Knowledge-area'},],    

@@ -29,6 +29,10 @@ function saveLesson(req, res) {
     lesson.justification = params.justification;
     lesson.state = params.state;
 
+    if(params.version){
+        lesson.version = params.version;
+    }
+
     lesson.created_at = moment().unix();
 
     lesson.save((err, lessonStored) => {
@@ -212,6 +216,7 @@ function getMyLessons(req, res) {
         ]})
         .sort('name')        
         .populate('knowledge_area', 'name')
+        .populate('development_group', 'name surname picture role _id')
         .paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
             if (err) return res.status(500).send({ message: 'Error in the request. The lessons were not found' });
 
@@ -234,6 +239,7 @@ function getAllMyLessons(req, res) {
         ]})
         .sort('name')        
         .populate('knowledge_area', 'name')
+        .populate('development_group', 'name surname picture role _id')
         .exec((err, lessons) => {
             if (err) return res.status(500).send({ message: 'Error in the request. The lessons were not found' });
 
@@ -246,6 +252,27 @@ function getAllMyLessons(req, res) {
 }
 
 function getLessonsToAdvise(req, res) {
+    let page = req.params.page;
+    let userId = req.user.sub;
+    
+    Lesson.find({"expert":userId})
+        .sort('name')        
+        .populate('knowledge_area', 'name')
+        .populate('development_group', 'name surname picture role _id')
+        .paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
+            if (err) return res.status(500).send({ message: 'Error in the request. The lessons were not found' });
+
+            if (!lessons) return res.status(404).send({ message: 'No lessons were found' });
+
+            return res.status(200).send({
+                lessons: lessons,
+                total: total,
+                pages: Math.ceil(total / ITEMS_PER_PAGE)
+            });
+        });
+}
+
+function getAllLessonsToAdvise(req, res) {
     let userId = req.user.sub;
     
     Lesson.find({"expert":userId})
@@ -363,6 +390,7 @@ module.exports = {
     getMyLessons,
     getAllMyLessons,
     getLessonsToAdvise,
+    getAllLessonsToAdvise,
     getSuggestLessons,
     getCalls,
     getAllCalls,
