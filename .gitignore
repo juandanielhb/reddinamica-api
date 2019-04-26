@@ -92,6 +92,7 @@ db/config.json
 
 # Uploaded files
 uploads/
+!uploads/users/user-default.png
 
 # Drive control
 *desktop.ini
