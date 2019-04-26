@@ -13,7 +13,7 @@ var userSchema = schema({
     canAdvise:{type:Boolean, default:false},
     actived:{type:Boolean, default:false},
     postgraduate:String,
-    picture: {type:String, default:'user-default.png'},
+    picture: String,
     knowledge_area:[String],
     profession:{type: schema.ObjectId, ref: 'Profession'},
     institution: {type: schema.ObjectId, ref: 'Institution'},
