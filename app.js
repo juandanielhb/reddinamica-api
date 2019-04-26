@@ -3,7 +3,7 @@
 // app.js has all the set up for express
 let express = require('express');
 let bodyParser = require('body-parser');
-
+let path = require('path');
 let app = express();
 
 // Load routes
@@ -33,6 +33,9 @@ app.use((req, res, next) => {
     next();
 });
 
+// Static route
+app.use('/', express.static('client', {redirect:false}));
+
 // Routes
 app.use('/api', cityRoutes);
 app.use('/api', institutionRoutes);
@@ -45,6 +48,11 @@ app.use('/api', messageRoutes);
 app.use('/api', resourceRoutes);
 app.use('/api', lessonRoutes);
 app.use('/api', userRoutes);
+
+// Rewrite url
+app.use('*', function(req, res, next){
+    res.sendFile(path.resolve('client/index.html'));
+});
 
 // Export
 module.exports = app;
