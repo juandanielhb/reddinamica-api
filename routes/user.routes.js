@@ -18,6 +18,7 @@ api.post('/registerbyAdmin', [auth.ensureAuth, controlAccess.isAdmin],  userCont
 api.post('/login', userController.login);
 api.post('/validate-password', auth.ensureAuth, userController.validatePassword);
 api.post('/change-password', auth.ensureAuth, userController.changePassword);
+api.post('/recover-password', userController.recoverPassword);
 
 api.put('/user-update/:id', auth.ensureAuth, userController.updateUser);
 api.delete('/user', auth.ensureAuth, userController.deleteUser);
@@ -30,9 +31,5 @@ api.get('/counters/:id?', auth.ensureAuth , userController.getCounters);
 
 api.post('/upload-image-user/:id', [auth.ensureAuth, uploadMiddleware.uploadImage(USERS_PATH)] , userController.uploadProfilePic);
 api.get('/get-image-user/:imageFile', userController.getProfilePic);
-
-
-api.post('/prueba', userController.prueba);
-
 
 module.exports = api;

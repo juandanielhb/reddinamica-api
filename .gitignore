@@ -95,3 +95,6 @@ uploads/
 
 # Drive control
 *desktop.ini
+
+#.env
+.env

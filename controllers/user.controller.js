@@ -9,7 +9,7 @@ let uuidv4 = require('uuid/v4');
 
 // Services
 let jwt = require('../services/jwt.service');
-let nodemailer = require('nodemailer');
+let mail = require('../services/mail.service');
 
 // Models
 let User = require('../models/user.model');
@@ -96,7 +96,7 @@ function saveUserByAdmin(req, res) {
             if (users && users.length >= 1) {
                 return res.status(200).send({ message: 'User already exists' });
             } else {
-                console.log(params.password)
+
                 bcrypt.hash(params.password, null, null, (err, hash) => {
                     user.password = hash;
                     
@@ -106,7 +106,17 @@ function saveUserByAdmin(req, res) {
 
                         if (!userStored) return res.status(404).send({ message: 'The user has not been saved' });
 
-                        // ******************* ENVIAR CORREO CON LA CONTRASEÑA 
+                        mail.sendMail(
+                            'Contraseña Reddinámica', 
+                            userStored.email, 
+                            `
+                            <h3>Bienvenido a RedDinámica</h3>
+                            <br>
+                            La contraseña de inicio de sesión en RedDinámica es:  <strong>${params.password}</strong>
+                            <br>
+                            Se recomienda cambiar la contraseña una vez se inicie sesión, esto se puede realizar ingresando a <strong>Opciones de seguridad</strong>.`
+                            );
+                        
                         return res.status(200).send({ user: userStored });
                     });
                 });
@@ -117,6 +127,8 @@ function saveUserByAdmin(req, res) {
         return res.status(200).send({ message: 'You must fill all the required fields *****' });
     }
 }
+
+
 
 function login(req, res) {
     let params = req.body;
@@ -204,6 +216,38 @@ function changePassword(req, res) {
                 return res.status(200).send({ user: userUpdated });
             });
     });
+}
+
+function recoverPassword(req, res) {
+    let params = req.body;
+    let password = uuidv4().substr(0, 6);
+
+    bcrypt.hash(password, null, null, (err, hash) => {
+
+        User.findOneAndUpdate({email: params.email}, { password: hash }, { new: true })
+            .exec((err, userUpdated) => {
+
+                if (err) return res.status(500).send({ message: 'Error in the request. User has not been updated' });
+
+                if (!userUpdated) return res.status(404).send({ message: 'The user can not be updated' });
+
+                userUpdated.password = null;
+
+                mail.sendMail(
+                    'Nueva contraseña Reddinámica',
+                    userUpdated.email,
+                    `
+                    <h3>Bienvenido a RedDinámica</h3>
+                    <br>
+                    Su nueva contraseña de inicio de sesión en RedDinámica es:  <strong>${password}</strong>
+                    <br>
+                    Se recomienda cambiar la contraseña una vez se inicie sesión, esto se puede realizar ingresando a <strong>Opciones de seguridad</strong>.`
+                );
+
+                return res.status(200).send({ user: userUpdated });
+            });
+    });
+       
 }
 
 function getUser(req, res) {
@@ -504,38 +548,6 @@ async function getCountFollow(userId) {
 }
 
 
-function prueba(req, res) {
-
-    var transporter = nodemailer.createTransport({
-        service: 'gmail',
-        tls: { rejectUnauthorized: false },
-        auth: {
-            user: 'juandanielhb@gmail.com',
-            pass: 'juandanielak++'
-        }
-    });
-
-    var mailOptions = {
-        from: 'juandanielhb@gmail.com',
-        to: 'juandanielhb@gmail.com, juandanielhb@hotmail.es',
-        subject: 'Sending Email using Node.js',
-        text: `Hi Smartherd, thank you for your nice Node.js tutorials.
-              I will donate 50$ for this course. Please send me payment options.`
-        // html: '<h1>Hi Smartherd</h1><p>Your Messsage</p>'        
-    };
-
-    transporter.sendMail(mailOptions, function (error, info) {
-        if (error) {
-            console.log(error);
-            return res.status(200).send('error');
-        } else {
-            console.log('Email sent: ' + info.response);
-            return res.status(200).send('ok');
-        }
-    });
-
-    transporter.close();
-}
 
 
 module.exports = {
@@ -544,6 +556,7 @@ module.exports = {
     login,
     validatePassword,
     changePassword,
+    recoverPassword,
     getUser,
     getUsers,
     getAllUsers,
@@ -552,6 +565,6 @@ module.exports = {
     updateUser,
     deleteUser,
     uploadProfilePic,
-    getProfilePic,
-    prueba
+    getProfilePic
+
 }

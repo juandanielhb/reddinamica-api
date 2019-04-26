@@ -1,11 +1,11 @@
 'use strict'
 
-var jwt = require('jwt-simple');
-var moment = require ('moment');
-var {SECRET_KEY} = require ('../config');
+let jwt = require('jwt-simple');
+let moment = require ('moment');
+let {SECRET_KEY} = require ('../config');
 
 exports.createToken = function(user){
-    var payload = {
+    let payload = {
         sub: user._id,
         name: user.name,
         surname: user.surname,
