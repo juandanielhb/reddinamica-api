@@ -1,6 +1,4 @@
 {
-    "PORT": 3800,
-    "SECRET_KEY": "dummy_pass",
     "ITEMS_PER_PAGE": 10,   
     "FILES_SIZE_MB": 20
 }

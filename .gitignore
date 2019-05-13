@@ -84,18 +84,5 @@ typings/
 # DynamoDB Local files
 .dynamodb/
 
-# database config
-db/config.json
-
-# Base config
-# config.json
-
 # Uploaded files
 uploads/
-!uploads/users/user-default.png
-
-# Drive control
-*desktop.ini
-
-#.env
-.env
