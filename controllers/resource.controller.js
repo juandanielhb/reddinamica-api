@@ -91,7 +91,7 @@ function deleteResource(req, res) {
 
         if (!resourceRemoved) return res.status(404).send({ message: 'The resource has not been removed' });
 
-        Comment.remove({'_id':{'$in':resourceRemoved.comments}}, (err)=> {
+        Comment.deleteMany({'_id':{'$in':resourceRemoved.comments}}, (err)=> {
             if(err){
                 return res.status(500).send({ message: 'Error in the request. It can not be removed the resource comments' });
             }

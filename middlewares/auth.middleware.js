@@ -1,18 +1,19 @@
 'use strict'
 
-var jwt = require('jwt-simple');
-var moment = require('moment');
-var {SECRET_KEY} = require ('../config');
+let jwt = require('jwt-simple');
+let moment = require('moment');
+let SECRET_KEY = process.env.SECRET_KEY;
 
 exports.ensureAuth = function(req, res, next){
-
+    let token, payload;
+    
     if(!req.headers.authorization){
         return res.status(400).send({message: 'Request hasn\'t got authorization header'});
     }else{
-        var token = req.headers.authorization.replace(/['"]+/g,'');
+        token = req.headers.authorization.replace(/['"]+/g,'');
     }
     try {
-        var payload = jwt.decode(token, SECRET_KEY);
+        payload = jwt.decode(token, SECRET_KEY);
 
         if(payload.exp <= moment().unix()){
             return res.status(401).send({

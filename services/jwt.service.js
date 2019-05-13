@@ -2,7 +2,7 @@
 
 let jwt = require('jwt-simple');
 let moment = require ('moment');
-let {SECRET_KEY} = require ('../config');
+let SECRET_KEY = process.env.SECRET_KEY;
 
 exports.createToken = function(user){
     let payload = {

@@ -77,7 +77,7 @@ function deleteLesson(req, res) {
 
         if (!lessonRemoved) return res.status(404).send({ message: 'The lesson has not been removed' });
 
-        Comment.remove({ '_id': { '$in': lessonRemoved.comments } }, (err) => {
+        Comment.deleteMany({ '_id': { '$in': lessonRemoved.comments } }, (err) => {
             if (err) {
                 return res.status(500).send({ message: 'Error in the request. It can not be removed the lesson comments' });
             }

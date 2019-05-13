@@ -1,10 +1,8 @@
 require('dotenv').config();
 
-const express = require("express");
-const { PORT } = require("./config");
+const PORT = process.env.PORT || 3800;
 const mongoose = require("./db/connect");
 const app = require('./app');
-
 
 async function initDB(){
     const db = await mongoose.connect();

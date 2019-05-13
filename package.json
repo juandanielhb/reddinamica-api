@@ -4,7 +4,8 @@
   "description": "Website of the collaborative construction network of knowledge for the sustainability of the systems dynamics in school. RedDinámica 3.0",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "node index.js",
+    "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -28,7 +29,9 @@
     "mongoose-pagination": "^1.0.0",
     "multer": "^1.4.1",
     "nodemailer": "^6.0.0",
-    "nodemon": "^1.18.10",
     "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.0"
   }
 }

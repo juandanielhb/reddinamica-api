@@ -81,7 +81,7 @@ function getEmittedMessages(req, res){
 function getUnviewedMessages(req, res){
     let userId = req.user.sub;
 
-    Message.count({receiver:userId, viewed:'false'}, (err, count) => {
+    Message.countDocuments({receiver:userId, viewed:'false'}, (err, count) => {
         if(err) return res.status(500).send({message: 'Error in the request. The count can not be made'});
 
         return res.status(200).send({
@@ -93,7 +93,7 @@ function getUnviewedMessages(req, res){
 function setViewedMessage(req, res){
     let userId = req.user.sub;
 
-    Message.update({receiver:userId, viewed:'false'}, {viewed:'true'}, {multi:'true'}, (err, messagesUpdated) => {
+    Message.updateMany({receiver:userId, viewed:'false'}, {viewed:'true'}, {multi:'true'}, (err, messagesUpdated) => {
         if(err) return res.status(500).send({message: 'Error in the request. The message can not be updated'});
 
         return res.status(200).send({

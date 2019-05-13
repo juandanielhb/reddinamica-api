@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const { DB_HOST, DB_PORT, DB_NAME } = require("./config");
-const connectionUrl = `mongodb://${DB_HOST}:${DB_PORT}/${DB_NAME}`; 
+const { MONGO_HOST, MONGO_PORT, MONGO_DB } = process.env;
+const connectionUrl = `mongodb://${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}`; 
 
 module.exports = (()=>{
     let instance = null,
@@ -12,7 +12,7 @@ module.exports = (()=>{
         return new Promise((resolve, reject)=>{
             mongoose.connect(connectionUrl, {useNewUrlParser: true}, (err) => {
                 if(err) { reject(err); return; }
-                console.log("Mongo connection is up!");
+                console.log(`Mongo connection is up!`);
                 instance = mongoose;
                 resolve(instance);
             })

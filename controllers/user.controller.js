@@ -522,19 +522,19 @@ function getCounters(req, res) {
 }
 
 async function getCountFollow(userId) {
-    let following = await Follow.count({ user: userId }, (err, count) => {
+    let following = await Follow.countDocuments({ user: userId }, (err, count) => {
         if (err) return handleError(err);
 
         return count;
     });
 
-    let followed = await Follow.count({ followed: userId }, (err, count) => {
+    let followed = await Follow.countDocuments({ followed: userId }, (err, count) => {
         if (err) return handleError(err);
 
         return count;
     });
 
-    let publications = await Publication.count({ user: userId }, (err, count) => {
+    let publications = await Publication.countDocuments({ user: userId }, (err, count) => {
         if (err) return handleError(err);
 
         return count;
