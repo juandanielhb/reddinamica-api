@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 const { MONGO_HOST, MONGO_PORT, MONGO_DB } = process.env;
 const connectionUrl = `mongodb://${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}`;
 
+const initData = require('./initData');
+const hola = 'pureba';
+
 const options = {
     useNewUrlParser: true,
     useCreateIndex: true,
@@ -23,11 +26,15 @@ module.exports = (() => {
                 console.log(`MongoDB is connected`);
                 instance = mongoose;
                 resolve(instance);
+                
+                // Creating and validating if the admin exists
+                initData.createAdmin();
             })
         });
-
+        
     }
-
+    
+    
 
     function disconnect() {
         if (instance && !isDisconnecting) {
