@@ -46,7 +46,7 @@ function updateInstitution(req, res) {
 function deleteInstitution(req, res) {
     var institutionId = req.params.id;
 
-    Institution.findOneAndRemove({ _id: institutionId, used: "false" }, (err, institutionRemoved) => {
+    Institution.findOneAndRemove({ _id: institutionId }, (err, institutionRemoved) => {
         if (err) return res.status(500).send({ message: 'Error in the request. The institution can not be removed' });
 
         if (!institutionRemoved) return res.status(404).send({ message: 'The institution can not be removed, it has already been used or it has not been found' });

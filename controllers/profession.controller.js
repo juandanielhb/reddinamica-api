@@ -74,7 +74,7 @@ function saveProfession(req, res){
  function deleteProfession(req, res){
     var professionId = req.params.id;    
 
-    Profession.findOneAndRemove({_id: professionId, used:"false"},(err,professionRemoved) => {
+    Profession.findOneAndRemove({_id: professionId},(err,professionRemoved) => {
         console.log(err);
         if(err) return res.status(500).send({message:'Error in the request. The profession can not be removed '});
 

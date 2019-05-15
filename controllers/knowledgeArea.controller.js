@@ -85,7 +85,7 @@ function saveAreas(req, res){
  function deleteArea(req, res){
     var areaId = req.params.id;    
 
-    KnowledgeArea.findOneAndRemove({_id: areaId, used:"false"},(err,areaRemoved) => {
+    KnowledgeArea.findOneAndRemove({_id: areaId},(err,areaRemoved) => {
         console.log(err);
         if(err) return res.status(500).send({message:'Error in the request. The Area can not be removed '});
 

@@ -51,11 +51,12 @@ function saveUser(req, res) {
                 bcrypt.hash(params.password, null, null, (err, hash) => {
                     user.password = hash;
                     user.save((err, userStored) => {
-                        
+
                         if (err) return res.status(500).send({ message: 'Error in the request. The user can not be saved' });
 
                         if (!userStored) return res.status(404).send({ message: 'The user has not been saved' });
 
+                        userStored.password = null;
                         return res.status(200).send({ user: userStored });
                     });
                 });
@@ -99,24 +100,24 @@ function saveUserByAdmin(req, res) {
 
                 bcrypt.hash(params.password, null, null, (err, hash) => {
                     user.password = hash;
-                    
+
                     user.save((err, userStored) => {
-                        
+
                         if (err) return res.status(500).send({ message: 'Error in the request. The user can not be saved' });
 
                         if (!userStored) return res.status(404).send({ message: 'The user has not been saved' });
 
                         mail.sendMail(
-                            'Contraseña Reddinámica', 
-                            userStored.email, 
+                            'Contraseña Reddinámica',
+                            userStored.email,
                             `
                             <h3>Bienvenido a RedDinámica</h3>
-                            <br>
-                            La contraseña de inicio de sesión en RedDinámica es:  <strong>${params.password}</strong>
-                            <br>
+                            <p>La contraseña de inicio de sesión en RedDinámica es:  <strong>${params.password}</strong></p>
+                            
                             Se recomienda cambiar la contraseña una vez se inicie sesión, esto se puede realizar ingresando a <strong>Opciones de seguridad</strong>.`
-                            );
-                        
+                        );
+
+                        userStored.password = null;
                         return res.status(200).send({ user: userStored });
                     });
                 });
@@ -151,7 +152,7 @@ function login(req, res) {
 
                         if (params.getToken) {
                             // Generate and return token
-                            return res.status(200).send({ token: jwt.createToken(user)});
+                            return res.status(200).send({ token: jwt.createToken(user) });
 
                         } else {
                             // Return user data
@@ -212,7 +213,6 @@ function changePassword(req, res) {
                 if (!userUpdated) return res.status(404).send({ message: 'The user can not be updated' });
 
                 userUpdated.password = null;
-
                 return res.status(200).send({ user: userUpdated });
             });
     });
@@ -224,30 +224,32 @@ function recoverPassword(req, res) {
 
     bcrypt.hash(password, null, null, (err, hash) => {
 
-        User.findOneAndUpdate({email: params.email}, { password: hash }, { new: true })
+        User.findOneAndUpdate({ email: params.email }, { password: hash }, { new: true })
             .exec((err, userUpdated) => {
 
                 if (err) return res.status(500).send({ message: 'Error in the request. User has not been updated' });
 
                 if (!userUpdated) return res.status(404).send({ message: 'The user can not be updated' });
 
-                userUpdated.password = null;
-
                 mail.sendMail(
                     'Nueva contraseña Reddinámica',
                     userUpdated.email,
                     `
-                    <h3>Bienvenido a RedDinámica</h3>
-                    <br>
+                    <h3>Su contraseña de ingreso a RedDinámica se ha cambiado</h3>
+                    <p>
                     Su nueva contraseña de inicio de sesión en RedDinámica es:  <strong>${password}</strong>
-                    <br>
-                    Se recomienda cambiar la contraseña una vez se inicie sesión, esto se puede realizar ingresando a <strong>Opciones de seguridad</strong>.`
+                    </p>
+                    <p>
+                    Se recomienda cambiar la contraseña una vez se inicie sesión, esto se puede realizar ingresando a <strong>Opciones de seguridad</strong>.
+                    </p>
+                    `
                 );
 
+                userUpdated.password = null;
                 return res.status(200).send({ user: userUpdated });
             });
     });
-       
+
 }
 
 function getUser(req, res) {
@@ -282,21 +284,22 @@ function getNewUsers(req, res) {
         page = req.params.page;
     }
 
-    User.find({ actived: false }).sort('name')
-    .populate('city')
-    .populate('profession')
-    .populate('institution')
-    .paginate(page, ITEMS_PER_PAGE, (err, users, total) => {
-        if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
+    User.find({ actived: false }, '-password').sort('name')
+        .populate('city')
+        .populate('profession')
+        .populate('institution')
+        .paginate(page, ITEMS_PER_PAGE, (err, users, total) => {
+            if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
 
-        if (!users) return res.status(404).send({ message: 'It was not found any user' });
+            if (!users) return res.status(404).send({ message: 'It was not found any user' });
 
-        return res.status(200).send({
-            users,
-            total,
-            pages: Math.ceil(total / ITEMS_PER_PAGE)
+
+            return res.status(200).send({
+                users,
+                total,
+                pages: Math.ceil(total / ITEMS_PER_PAGE)
+            });
         });
-    });
 }
 
 function updateUser(req, res) {
@@ -323,6 +326,7 @@ function updateUser(req, res) {
 
             if (!userUpdated) return res.status(404).send({ message: 'The user can not be updated' });
 
+            userUpdated.password = null;            
             return res.status(200).send({ user: userUpdated });
         });
 
@@ -332,22 +336,22 @@ function deleteUser(req, res) {
 
     let userId = req.params.id;
 
-    if(!userId){
+    if (!userId) {
         userId = req.user.sub;
-    }    
+    }
 
     User.findOneAndRemove({ _id: userId }, (err, userRemoved) => {
         if (err) return res.status(500).send({ message: 'Error in the request. The user can not be removed' });
 
         if (!userRemoved) return res.status(404).send({ message: 'The user can not be removed, it has not been found' });
 
-        Follow.find({$or: [{followed: userId}, {user: userId}]}).remove().exec();
-        Publication.find({user:userId}).remove().exec();
+        Follow.find({ $or: [{ followed: userId }, { user: userId }] }).remove().exec();
+        Publication.find({ user: userId }).remove().exec();
 
         return res.status(200).send({ user: userRemoved });
     });
 
-    
+
 
 }
 
@@ -369,6 +373,7 @@ function uploadProfilePic(req, res) {
 
             if (!userUpdated) return removeFilesOfUpdates(res, 404, filePath, 'The user has not been updated');
 
+            userUpdated.password = null;
             return res.status(200).send({ user: userUpdated });
         });
 
@@ -423,7 +428,7 @@ function getUsers(req, res) {
         page = req.params.page;
     }
 
-    User.find().sort('name')
+    User.find({},'-password').sort('name')
         .populate('city')
         .populate('profession')
         .populate('institution')
@@ -432,6 +437,7 @@ function getUsers(req, res) {
 
             if (!users) return res.status(404).send({ message: 'There are no users' });
 
+            
             followsUserId(userId).then((value) => {
                 return res.status(200).send({
                     users,
@@ -449,7 +455,7 @@ function getUsers(req, res) {
 function getAllUsers(req, res) {
     let userId = req.user.sub;
 
-    User.find().sort('name')
+    User.find({}, '-password').sort('name')
         .populate('city')
         .populate('profession')
         .populate('institution')
