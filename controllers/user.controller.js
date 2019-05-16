@@ -335,12 +335,26 @@ function updateUser(req, res) {
 function deleteUser(req, res) {
 
     let userId = req.params.id;
+    let user = {
+        name:'Usuario RedDinámica',
+        surname:'',
+        password:'',
+        email:'',
+        about:'',        
+        role:'',
+        postgraduate:'',
+        knowledge_area:'',
+        profession:null,
+        institution:null,
+        city:null,
+        created_at:moment().unix()
+    }   
 
     if (!userId) {
         userId = req.user.sub;
     }
 
-    User.findOneAndRemove({ _id: userId }, (err, userRemoved) => {
+    User.findOneAndUpdate({ _id: userId }, user, (err, userRemoved) => {
         if (err) return res.status(500).send({ message: 'Error in the request. The user can not be removed' });
 
         if (!userRemoved) return res.status(404).send({ message: 'The user can not be removed, it has not been found' });
@@ -428,7 +442,7 @@ function getUsers(req, res) {
         page = req.params.page;
     }
 
-    User.find({},'-password').sort('name')
+    User.find({name:{$ne: 'Usuario RedDinámica'}},'-password').sort('name')
         .populate('city')
         .populate('profession')
         .populate('institution')
@@ -455,7 +469,7 @@ function getUsers(req, res) {
 function getAllUsers(req, res) {
     let userId = req.user.sub;
 
-    User.find({}, '-password').sort('name')
+    User.find({name:{$ne: 'Usuario RedDinámica'}}, '-password').sort('name')
         .populate('city')
         .populate('profession')
         .populate('institution')
