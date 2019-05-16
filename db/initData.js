@@ -7,7 +7,8 @@ let User = require('../models/user.model');
 exports.createAdmin = function(){
     let user = new User();
 
-    user.name = 'RedDinámica';
+    user.name = process.env.NAME || 'RedDinámica';
+    user.surname = process.env.SURNAME || '';
     user.password = process.env.PASSWORD;
     user.email = process.env.EMAIL;
     user.role = 'admin';
@@ -17,7 +18,7 @@ exports.createAdmin = function(){
     user.created_at = moment().unix();
 
     // Check duplicate users
-    User.find({ email: user.email }, (err, users) => {
+    User.find({ $or: [{ email: user.email }, { role: 'admin' }] }, (err, users) => {
         if (err) console.log('Error in the request. The admin can not be created');
 
         if (users && users.length >= 1) {
