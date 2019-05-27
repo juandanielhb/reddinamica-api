@@ -56,6 +56,22 @@ function saveUser(req, res) {
 
                         if (!userStored) return res.status(404).send({ message: 'The user has not been saved' });
 
+                        mail.sendMail(
+                            'Nuevo usuario registrado',
+                            process.env.EMAIL,
+                            `
+                            <h3>Hola ${process.env.NAME}</h3>
+                            <p>Se ha registrado el usuario 
+                            <strong>${userStored.name} ${userStored.surname}</strong>
+                             con el correo electrónico 
+                            ${userStored.email}.</p>
+                            <p>
+                            Ingresa al <strong>panel de administración</strong> de reddinámica para revisar la información 
+                             del nuevo usuario.
+                             </p>
+                            `
+                        );
+
                         userStored.password = null;
                         return res.status(200).send({ user: userStored });
                     });

@@ -2,6 +2,9 @@
 let { ITEMS_PER_PAGE } = require('../config');
 const LESSON_PATH = './uploads/lessons/';
 
+// Services
+let mail = require('../services/mail.service');
+
 // Load libraries
 let mongoosePaginate = require('mongoose-pagination');
 let moment = require('moment');
@@ -29,7 +32,7 @@ function saveLesson(req, res) {
     lesson.justification = params.justification;
     lesson.state = params.state;
 
-    if(params.version){
+    if (params.version) {
         lesson.version = params.version;
     }
 
@@ -40,18 +43,69 @@ function saveLesson(req, res) {
 
         if (!lessonStored) return res.status(404).send({ message: 'The lesson has not been saved' });
 
+        console.log(params.class)
+        switch (params.class) {
+            case 'suggest':
+                    
+                mail.sendMail(
+                    'Nueva sugerencia de lección',
+                    process.env.EMAIL,
+                    `
+                    <h3>Hola ${process.env.NAME}</h3>
+                    <p>
+                    Se ha registrado una sugerencia para lección con el título:
+                    </p>
+                    <p>
+                    <strong>"${lessonStored.title}"</strong>
+                    </p>
+                    <p>
+                    Ingresa al <strong>panel de administración > Lecciones > Propuestas </strong> de reddinámica para revisar la información 
+                    de la nueva propuesta.
+                    </p>
+                    `
+                );
+
+                break;
+
+            case 'experience':
+                
+                mail.sendMail(
+                    'Nueva experencia registrada',
+                    process.env.EMAIL,
+                    `
+                    <h3>Hola ${process.env.NAME}</h3>
+                    <p>
+                    Se ha registrado una experiencia con el título:
+                    </p>
+                    <p>
+                    <strong>"${lessonStored.title}"</strong>
+                    </p>
+                    <p>
+                    Ingresa al <strong>panel de administración > Lecciones > Experiencias </strong> de reddinámica para revisar la información 
+                    de la nueva propuesta.
+                    </p>
+                    `
+                );
+
+                break;
+
+
+                break;
+        }
+
+
         return res.status(200).send({ lesson: lessonStored });
     });
 }
 
-function uploadLessonFiles(req, res){
+function uploadLessonFiles(req, res) {
 
     if (req.files) {
         return res.status(200).send({ message: 'The files were uploaded correctly' });
     }
 }
 
-function getLessonFile(req, res){
+function getLessonFile(req, res) {
     let file = req.params.file;
     let pathFile = path.resolve(LESSON_PATH, file);
 
@@ -122,7 +176,7 @@ function getLesson(req, res) {
         .populate('expert', 'name surname picture role _id')
         .populate('leader', 'name surname picture role _id')
         .populate('knowledge_area', 'name')
-        .populate('conversations.author', 'name surname picture role _id')        
+        .populate('conversations.author', 'name surname picture role _id')
         .populate('expert_comments.author', 'name surname picture role _id')
         .populate({
             path: 'comments',
@@ -209,12 +263,14 @@ function getAllLessons(req, res) {
 function getMyLessons(req, res) {
     let page = req.params.page;
     let userId = req.user.sub;
-    
-    Lesson.find({$or:[
-        {"author":userId},
-        {"development_group":{ $all: userId }}
-        ]})
-        .sort('name')        
+
+    Lesson.find({
+        $or: [
+            { "author": userId },
+            { "development_group": { $all: userId } }
+        ]
+    })
+        .sort('name')
         .populate('knowledge_area', 'name')
         .populate('development_group', 'name surname picture role _id')
         .paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
@@ -232,12 +288,14 @@ function getMyLessons(req, res) {
 
 function getAllMyLessons(req, res) {
     let userId = req.user.sub;
-    
-    Lesson.find({$or:[
-        {"author":userId},
-        {"development_group":{ $all: userId }}
-        ]})
-        .sort('name')        
+
+    Lesson.find({
+        $or: [
+            { "author": userId },
+            { "development_group": { $all: userId } }
+        ]
+    })
+        .sort('name')
         .populate('knowledge_area', 'name')
         .populate('development_group', 'name surname picture role _id')
         .exec((err, lessons) => {
@@ -254,9 +312,9 @@ function getAllMyLessons(req, res) {
 function getLessonsToAdvise(req, res) {
     let page = req.params.page;
     let userId = req.user.sub;
-    
-    Lesson.find({"expert":userId})
-        .sort('name')        
+
+    Lesson.find({ "expert": userId })
+        .sort('name')
         .populate('knowledge_area', 'name')
         .populate('development_group', 'name surname picture role _id')
         .paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
@@ -274,9 +332,9 @@ function getLessonsToAdvise(req, res) {
 
 function getAllLessonsToAdvise(req, res) {
     let userId = req.user.sub;
-    
-    Lesson.find({"expert":userId})
-        .sort('name')        
+
+    Lesson.find({ "expert": userId })
+        .sort('name')
         .populate('knowledge_area', 'name')
         .exec((err, lessons) => {
             if (err) return res.status(500).send({ message: 'Error in the request. The lessons were not found' });
