@@ -265,6 +265,7 @@ function getMyLessons(req, res) {
     let userId = req.user.sub;
 
     Lesson.find({
+        "accepted": true,
         $or: [
             { "author": userId },
             { "development_group": { $all: userId } }
@@ -290,6 +291,7 @@ function getAllMyLessons(req, res) {
     let userId = req.user.sub;
 
     Lesson.find({
+        "accepted": true,
         $or: [
             { "author": userId },
             { "development_group": { $all: userId } }
