@@ -354,8 +354,7 @@ function deleteUser(req, res) {
     let user = {
         name:'Usuario RedDinámica',
         surname:'',
-        password:'',
-        email:'',
+        password:'',        
         about:'',        
         role:'',
         postgraduate:'',
@@ -363,6 +362,7 @@ function deleteUser(req, res) {
         profession:null,
         institution:null,
         city:null,
+        actived:null,
         created_at:moment().unix()
     }   
 
@@ -371,6 +371,7 @@ function deleteUser(req, res) {
     }
 
     User.findOneAndUpdate({ _id: userId }, user, (err, userRemoved) => {
+        console.log(err)
         if (err) return res.status(500).send({ message: 'Error in the request. The user can not be removed' });
 
         if (!userRemoved) return res.status(404).send({ message: 'The user can not be removed, it has not been found' });
