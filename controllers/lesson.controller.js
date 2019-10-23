@@ -181,7 +181,7 @@ function getLesson(req, res) {
         .populate({
             path: 'comments',
             populate: { path: 'user', select: 'name surname picture _id' }
-        })
+        }).populate('son_lesson','_id visible')
         .exec((err, lesson) => {
             if (err) return res.status(500).send({ message: 'Error in the request. lesson can not be found' });
 

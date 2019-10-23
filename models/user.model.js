@@ -7,7 +7,7 @@ var userSchema = schema({
     name:String,
     surname:String,
     password:String,
-    email:{type:String,unique:true},
+    email:String,
     about:String,
     role:String,
     canAdvise:{type:Boolean, default:false},
