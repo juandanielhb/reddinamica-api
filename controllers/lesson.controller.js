@@ -203,8 +203,7 @@ function getLessons(req, res) {
         findQuery.visible = true;
     }
 
-
-    Lesson.find(findQuery)
+    Lesson.find(findQuery).sort({created_at:-1})
         .sort('name')
         .populate('development_group', 'name surname picture role _id')
         .populate('author', 'name surname picture role _id')
@@ -213,7 +212,6 @@ function getLessons(req, res) {
         .populate('knowledge_area', 'name')
         .populate('call.interested', 'name surname role picture _id')
         .paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
-
 
             if (err) return res.status(500).send({ message: 'Error in the request. The lessons were not found' });
 
@@ -228,7 +226,7 @@ function getLessons(req, res) {
 }
 
 function getAllLessons(req, res) {
-    let order = `-${req.params.order}`;
+    let order = {}; 
 
     let findQuery = {
         accepted: true
@@ -238,8 +236,14 @@ function getAllLessons(req, res) {
         findQuery.visible = true;
     }
 
-    if (!req.params.order) {
-        order = 'title';
+    if (req.params.order) {
+        if(req.params.order == 'views'){
+            order.views = -1;
+        }else{
+            order.score = -1;
+        }
+    }else{
+        order.created_at = 1;
     }
 
     Lesson.find(findQuery).sort(order)
