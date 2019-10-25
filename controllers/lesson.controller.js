@@ -146,12 +146,14 @@ function updateLesson(req, res) {
     var lessonId = req.params.id;
     var updateData = req.body;
 
+    updateData.call.created_at = moment().unix();
+
     Lesson.findByIdAndUpdate(lessonId, updateData, { new: true })
         .populate('development_group', 'name surname picture role _id')
         .populate('author', 'name surname picture role _id')
         .populate('expert', 'name surname picture role _id')
         .populate('leader', 'name surname picture role _id')
-        .populate('call.interested', 'name surname role picture _id')
+        .populate('call.interested', 'name surname role picture _id created_at')
         .populate('conversations.author', 'name surname picture role _id')
         .populate('expert_comments.author', 'name surname picture role _id')
         .populate({
@@ -413,7 +415,7 @@ function getCalls(req, res) {
         page = req.params.page;
     }
 
-    Lesson.find({ "call.visible": true })
+    Lesson.find({ "call.visible": true }).sort({created_at:-1})
         .populate('call.interested', 'name surname role picture _id')
         .populate('knowledge_area', 'name')
         .paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
@@ -431,7 +433,7 @@ function getCalls(req, res) {
 
 function getAllCalls(req, res) {
 
-    Lesson.find({ "call.visible": true })
+    Lesson.find({ "call.visible": true }).sort({created_at:-1})
         .populate('call.interested', 'name surname role picture _id')
         .populate('knowledge_area', 'name')
         .exec((err, lessons) => {

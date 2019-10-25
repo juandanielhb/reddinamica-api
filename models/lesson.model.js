@@ -7,7 +7,8 @@ let call = schema({
     text:String,
     visible:{type:Boolean, default: false},
     author:{type: schema.ObjectId, ref: 'User'},
-    interested:[{type: schema.ObjectId, ref:'User'}]
+    interested:[{type: schema.ObjectId, ref:'User'}],
+    created_at:String
 });
 
 let file = schema({
