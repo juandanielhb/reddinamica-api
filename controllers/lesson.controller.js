@@ -25,6 +25,7 @@ function saveLesson(req, res) {
     lesson.resume = params.resume;
     lesson.references = params.references;
     lesson.development_level = params.development_level;
+    lesson.level = params.level;
     lesson.type = params.type;
     lesson.knowledge_area = params.knowledge_area;
     lesson.author = params.author;
@@ -43,7 +44,6 @@ function saveLesson(req, res) {
 
         if (!lessonStored) return res.status(404).send({ message: 'The lesson has not been saved' });
 
-        console.log(params.class)
         switch (params.class) {
             case 'suggest':
                     
