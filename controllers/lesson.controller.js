@@ -204,7 +204,6 @@ function getLessons(req, res) {
     }
 
     Lesson.find(findQuery).sort({created_at:-1})
-        .sort('name')
         .populate('development_group', 'name surname picture role _id')
         .populate('author', 'name surname picture role _id')
         .populate('expert', 'name surname picture role _id')
@@ -246,7 +245,7 @@ function getAllLessons(req, res) {
         order.created_at = 1;
     }
 
-    Lesson.find(findQuery).sort(order)
+    Lesson.find(findQuery).sort(order).sort({created_at:-1})
         .populate('development_group', 'name surname picture role _id')
         .populate('author', 'name surname picture role _id')
         .populate('expert', 'name surname picture role _id')
