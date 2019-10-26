@@ -364,7 +364,7 @@ function getSuggestLessons(req, res) {
 
     Lesson.find({ justification: { $ne: null }, accepted: false })
         .populate('author', 'name surname picture role _id')
-        .sort('name').paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
+        .sort({created_at:-1}).paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
             if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
 
             if (!lessons) return res.status(404).send({ message: 'It was not found any record' });
@@ -388,7 +388,7 @@ function getExperiences(req, res) {
     Lesson.find({ development_level: { $ne: null }, type: { $ne: null }, accepted: false })
         .populate('author', 'name surname picture role _id')
         .populate('knowledge_area', 'name')
-        .sort('name').paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
+        .sort({created_at:-1}).paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
             if (err) return res.status(500).send({ message: 'Error in the request. Could not get records' });
 
             if (!lessons) return res.status(404).send({ message: 'It was not found any record' });
