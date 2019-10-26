@@ -276,7 +276,7 @@ function getMyLessons(req, res) {
             { "development_group": { $all: userId } }
         ]
     })
-        .sort('name')
+        .sort({created_at:-1})
         .populate('knowledge_area', 'name')
         .populate('development_group', 'name surname picture role _id')
         .paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
@@ -302,8 +302,8 @@ function getAllMyLessons(req, res) {
             { "development_group": { $all: userId } }
         ]
     })
-        .sort('name')
-        .populate('knowledge_area', 'name')
+    .sort({created_at:-1})
+    .populate('knowledge_area', 'name')
         .populate('development_group', 'name surname picture role _id')
         .exec((err, lessons) => {
             if (err) return res.status(500).send({ message: 'Error in the request. The lessons were not found' });
