@@ -321,7 +321,7 @@ function getLessonsToAdvise(req, res) {
     let userId = req.user.sub;
 
     Lesson.find({ "expert": userId })
-        .sort('name')
+        .sort({created_at:-1})
         .populate('knowledge_area', 'name')
         .populate('development_group', 'name surname picture role _id')
         .paginate(page, ITEMS_PER_PAGE, (err, lessons, total) => {
@@ -341,7 +341,7 @@ function getAllLessonsToAdvise(req, res) {
     let userId = req.user.sub;
 
     Lesson.find({ "expert": userId })
-        .sort('name')
+        .sort({created_at:-1})
         .populate('knowledge_area', 'name')
         .exec((err, lessons) => {
             if (err) return res.status(500).send({ message: 'Error in the request. The lessons were not found' });
