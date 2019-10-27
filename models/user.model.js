@@ -19,6 +19,8 @@ var userSchema = schema({
     institution: {type: schema.ObjectId, ref: 'Institution'},
     city: {type: schema.ObjectId, ref: 'City'},
     visits:{type:Number, default:0},
+    contactNumber:String,
+    socialNetworks:String,
     created_at:String
 });
 

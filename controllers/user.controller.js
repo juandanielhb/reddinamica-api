@@ -39,6 +39,8 @@ function saveUser(req, res) {
         user.profession = params.profession;
         user.institution = params.institution;
         user.city = params.city;
+        user.contactNumber = params.contactNumber;
+        user.socialNetworks = params.socialNetworks;
         user.created_at = moment().unix();
 
         // Check duplicate users
