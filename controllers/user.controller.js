@@ -359,6 +359,7 @@ function deleteUser(req, res) {
         password:'',        
         about:'',        
         role:'',
+        email:'',
         postgraduate:'',
         knowledge_area:'',
         profession:null,
