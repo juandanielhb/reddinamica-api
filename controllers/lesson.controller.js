@@ -146,7 +146,9 @@ function updateLesson(req, res) {
     var lessonId = req.params.id;
     var updateData = req.body;
 
-    updateData.call.created_at = moment().unix();
+    if(updateData.call){
+        updateData.call.created_at = moment().unix();
+    }
 
     Lesson.findByIdAndUpdate(lessonId, updateData, { new: true })
         .populate('development_group', 'name surname picture role _id')
